@@ -1,0 +1,67 @@
+<div class="modal fade edit-course-modal"
+     id="editCourseModal{{ course.id }}"
+     data-course-id="{{ course.id }}"
+     data-items='{{ items_list | tojson | safe }}'
+     tabindex="-1" role="dialog"
+     aria-labelledby="editCourseModalLabel{{ course.id }}"
+     aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <form method="post" action="/courses/edit/{{ course.id }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editCourseModalLabel{{ course.id }}">
+            Редагувати курс: {{ course.name }}
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Закрити">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          {# Название курса #}
+          <div class="form-group">
+            <label for="course-name">Назва курсу</label>
+            <input type="text"
+                   class="form-control"
+                   id="course-name"
+                   name="name"
+                   value="{{ course.name }}"
+                   required>
+          </div>
+
+          {# Селект для добавления новых элементов (упражнения или комплексы) #}
+          <div class="form-group">
+            <label for="item-select">Додати вправу або комплекс</label>
+            <select id="item-select"
+                    class="form-control"
+                    multiple
+                    style="width: 100%;">
+              {# Опции подгружаются JS-ом из API /api/search/exercises и /api/search/complexes #}
+            </select>
+          </div>
+
+          {# Список уже выбранных элементов (drag&drop) #}
+          <div class="form-group">
+            <label>Обрані елементи (перетягуйте для зміни порядку)</label>
+            <ul id="selected-items" class="list-group mb-2">
+              {# JS подставит сюда исходные items_list #}
+            </ul>
+          </div>
+
+          {# Скрытое поле с JSON-массивом [{type, id, position}, ...] #}
+          <input type="hidden"
+                 id="items-json"
+                 name="items_json"
+                 value="">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-dismiss="modal">Скасувати</button>
+          <button type="submit"
+                  class="btn btn-primary">Зберегти зміни</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

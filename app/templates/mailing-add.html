@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Створення Розсилки{% endblock %}
+
+{% set body_class = "page-to" %}
+{% block content %}
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include "partials/sidebar.html" %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include "partials/topbar.html" %}
+                <!-- End of Topbar -->
+                <div class="container-fluid">
+                    {% include "partials/alert.html" %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Створення Розсилки</h1>
+                        <a href="/mailing" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                            <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+                            Назад до списку
+                        </a>
+                    </div>
+                    <form method="post" action="/mailing/add">
+                    <div class="row">
+                        <!-- Левая карточка -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Пацієнти та курс</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="user-select">Виберіть Пацієнтів</label>
+                                        <select id="user-select" name="users" class="form-control" multiple="multiple"
+                                                style="width: 100%;">
+                                            {% for user in users %}
+                                                <option value="{{ user.id }}">{{ user.last_name }} {{ user.first_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="course-select">Виберіть Курс</label>
+                                        <select id="course-select" name="course_id_str" class="form-control" style="width: 100%;">
+                                            <option></option>
+                                            {% for course in courses %}
+                                                <option value="{{ course.id }}">{{ course.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <br>
+
+                                    <div class="card mb-4">
+                                      <a href="#collapseCard" class="d-block card-header py-3" data-toggle="collapse"
+                                         role="button" aria-expanded="true" aria-controls="collapseCard">
+                                        <h6 class="m-0 font-weight-bold text-primary">Створити Курс</h6>
+                                      </a>
+                                      <div class="collapse" id="collapseCard">
+                                        <div class="card-body">
+                                          <div class="form-group">
+                                            <label for="course-name">Назва курсу</label>
+                                            <input type="text" class="form-control" id="course-name" name="course_name" required>
+                                          </div>
+
+                                          <div class="form-group">
+                                            <label for="item-select">Виберіть вправи та/або комплекси</label>
+                                            <select id="item-select" class="form-control" multiple style="width:100%;"></select>
+                                          </div>
+
+                                          <div class="form-group">
+                                            <label>Обрані елементи (перетягуйте для зміни порядку)</label>
+                                            <ul id="selected-items" class="list-group mb-2" style="min-height:50px;"></ul>
+                                          </div>
+
+                                          <input type="hidden" name="items_json" id="items-json">
+                                        </div>
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Правая карточка -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Налаштування розсилки</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="mailing-time">Час розсилки</label>
+                                        <select id="mailing-time" name="mailing_time" class="form-control"
+                                                style="width: 100%;">
+                                            {% for hour in range(0, 24) %}
+                                                <option value="{{ "%02d:00"|format(hour) }}">{{ "%02d:00"|format(hour) }}</option>
+                                                <option value="{{ "%02d:30"|format(hour) }}">{{ "%02d:30"|format(hour) }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Дні розсилки</label>
+                                        <div class="form-check">
+                                            {% set days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П’ятниця', 'Субота', 'Неділя'] %}
+                                            {% for day in days %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="mailing_days"
+                                                           value="{{ loop.index + 1 }}" id="day-{{ loop.index }}">
+                                                    <label class="form-check-label"
+                                                           for="day-{{ loop.index }}">{{ day }}</label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success mt-3">Створити розсилку</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- JS для роботи Select2, драг-н-дропу і оновлення списку -->
+    <script src="{{ url_for('static', path='js/add-course-modal.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#user-select').select2({
+                placeholder: 'Виберіть пацієнтів…'
+            });
+        });
+        $(document).ready(function () {
+            $('#course-select').select2({
+                placeholder: 'Виберіть курс…',
+                allowClear: true,
+                theme: 'bootstrap4'
+            });
+        });
+        $(document).ready(function () {
+            $('#mailing-time').select2({
+                placeholder: 'Виберіть час…',
+                theme: 'bootstrap4'
+            });
+        });
+    </script>
+{% endblock %}

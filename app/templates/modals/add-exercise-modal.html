@@ -1,0 +1,34 @@
+<!-- Модальне вікно додавання співробітника -->
+<div class="modal fade" id="addExerciseModal" tabindex="-1" role="dialog" aria-labelledby="addExerciseModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="post" enctype="multipart/form-data" action="/exercises/add">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addExerciseModalLabel">Додати вправу</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Закрити">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Назва</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Текст</label>
+                        <textarea name="text" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Медіа файл</label>
+                        <input type="file" name="media" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-success">Додати</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

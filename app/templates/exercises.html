@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Вправи{% endblock %}
+
+{% set body_class = "page-to" %}
+{% block content %}
+    <div id="wrapper">
+        {% include "partials/sidebar.html" %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include "partials/topbar.html" %}
+                <div class="container-fluid">
+                    {% include "partials/alert.html" %}
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                <h1 class="h3 mb-0 text-gray-800">Вправи</h1>
+                                <button class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"
+                                        data-toggle="modal" data-target="#addExerciseModal">
+                                    <i class="fas fa-plus fa-sm text-white-50"></i> Додати Вправу
+                                </button>
+                                <!-- Modal -->
+                                {% include "modals/add-exercise-modal.html" %}
+                            </div>
+                            <hr>
+                            <!-- Search Form -->
+                            <form method="get" action="/exercises">
+                                <div class="form-row align-items-center">
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control mb-2" name="q" placeholder="Пошук..."
+                                               value="{{ query or '' }}">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button type="submit" class="btn btn-primary btn-block mb-2">Пошук</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        {% for exercise in exercises %}
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3 d-flex">
+                                <div class="card shadow w-100 d-flex flex-column"
+                                     style="min-height: 100%; max-height: 100%;">
+                                    <div class="card-header py-2 d-flex flex-row align-items-center justify-content-between">
+                                        <a href="/exercises/{{ exercise.id }}">
+                                            <h6 class="m-0 font-weight-bold text-primary">
+                                                {{ exercise.title }}
+                                            </h6>
+                                        </a>
+                                        <div class="dropdown no-arrow">
+                                            <a class="dropdown-toggle" href="#" role="button"
+                                               id="dropdownMenuLink{{ exercise.id }}"
+                                               data-toggle="dropdown" aria-haspopup="true"
+                                               aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                                 aria-labelledby="dropdownMenuLink{{ exercise.id }}">
+                                                <div class="dropdown-header">Дії:</div>
+                                                <a class="dropdown-item" href="#" data-toggle="modal"
+                                                   data-target="#deleteExerciseModal{{ exercise.id }}">Видалити</a>
+                                                <a class="dropdown-item" href="#" data-toggle="modal"
+                                                   data-target="#editExerciseModal{{ exercise.id }}">Редагувати</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body text-center p-2 d-flex flex-column">
+                                        {% if exercise.media == 'processing' %}
+                                            <img src="{{ url_for('static', path='img/media_placeholder.png') }}"
+                                                 class="img-fluid mb-2 rounded" alt="preview">
+                                        {% elif exercise.media.endswith('.mp4') %}
+                                            <video class="img-fluid mb-2 rounded" height="120" controls>
+                                                <source src="{{ url_for('static', path='exercises_media/' + exercise.media) }}"
+                                                        type="video/mp4">
+                                                Ваш браузер не підтримує відео.
+                                            </video>
+                                        {% else %}
+                                            <img src="{{ url_for('static', path='exercises_media/' + exercise.media) }}"
+                                                 class="img-fluid mb-2 rounded" alt="preview">
+                                        {% endif %}
+                                        <p class="text-muted mb-0 text-truncate"
+                                           style="max-height: 3em; overflow: hidden;">
+                                            {{ exercise.text }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% include "modals/delete-exercise-modal.html" %}
+                            {% include "modals/edit-exercise-modal.html" %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

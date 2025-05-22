@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Курс — {{ course.name }}{% endblock %}
+{% set body_class = "page-to" %}
+
+{% block content %}
+    <div id="wrapper">
+        {% include "partials/sidebar.html" %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include "partials/topbar.html" %}
+                <div class="container-fluid">
+                    {% include "partials/alert.html" %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Курс</h1>
+                        <a href="/courses" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                             <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+                            Назад до списку
+                        </a>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                {{ course.name }}
+                            </h6>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-warning shadow-sm" data-toggle="modal"
+                                        data-target="#editCourseModal{{ course.id }}">
+                                    <i class="fas fa-edit fa-sm text-white-50"></i> Редагувати
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal"
+                                        data-target="#deleteCourseModal{{ course.id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>ID:</strong> {{ course.id }}</p>
+                            <p><strong>Назва:</strong> {{ course.name }}</p>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered" width="100%" cellspacing="0">
+                                    <thead>
+                                    <tr>
+                                        <th>Позиція</th>
+                                        <th>Тип</th>
+                                        <th>Заголовок</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for item in course.items %}
+                                        <tr>
+                                            <td>{{ item.position }}</td>
+                                            <td>
+                                                {% if item.exercise_id %}Вправа{% else %}Комплекс{% endif %}
+                                            </td>
+                                            <td>
+                                                {% if item.exercise_id %}
+                                                    {{ item.exercise.title }}
+                                                {% else %}
+                                                    {{ item.complex.name }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if item.exercise_id %}
+                                                    <a href="/exercises/{{ item.exercise.id }}"
+                                                       class="btn btn-sm btn-info">Переглянути</a>
+                                                {% else %}
+                                                    <a href="/complexes/{{ item.complex.id }}"
+                                                       class="btn btn-sm btn-info">Переглянути</a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include "modals/edit-course-modal.html" %}
+    {% include "modals/delete-course-modal.html" %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', path='js/edit-course-modal.js') }}"></script>
+{% endblock %}

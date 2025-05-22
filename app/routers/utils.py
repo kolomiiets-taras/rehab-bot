@@ -1,0 +1,70 @@
+import uuid
+from datetime import time
+
+from fastapi import Request, HTTPException
+from functools import wraps
+from fastapi.responses import RedirectResponse
+from sqlalchemy import select
+
+from app.config import app_config
+from app.db import async_session
+from app.models import Exercise
+from app.models.employee import Role
+import subprocess
+from pathlib import Path
+
+
+def access_for(*allowed_roles):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(request: Request, *args, **kwargs):
+            user = request.state.user
+
+            if not user:
+                return RedirectResponse(url="/login", status_code=303)
+
+            if user.role == Role.OWNER or user.role in allowed_roles:
+                return await func(request, *args, **kwargs)
+            else:
+                raise HTTPException(status_code=403, detail="Access denied")
+        return wrapper
+    return decorator
+
+
+def convert_to_mp4(source_path: Path) -> Path:
+    target_path = source_path.with_suffix('.mp4')
+    subprocess.run([
+        'ffmpeg',
+        '-i', str(source_path),
+        '-vcodec', 'libx264',
+        '-acodec', 'aac',
+        '-strict', 'experimental',
+        str(target_path)
+    ], check=True)
+    source_path.unlink()  # Видаляємо оригінальний файл
+    return target_path
+
+
+async def save_exercise_media(filename: str, content: bytes, exercise_id: int):
+    ext = Path(filename).suffix
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+    file_path = app_config.MEDIA_PATH / unique_name
+
+    # Сохраняем файл
+    with file_path.open("wb") as buffer:
+        buffer.write(content)
+
+    # Конвертация если нужно
+    if file_path.suffix.lower() not in [".jpg", ".jpeg", ".png", ".gif", ".mp4"]:
+        try:
+            file_path = convert_to_mp4(file_path)
+        except Exception as e:
+            print(f"⚠️ Ошибка конвертации: {e}")
+
+    # Обновляем имя файла в базе
+    async with async_session() as session:
+        result = await session.execute(select(Exercise).where(Exercise.id == exercise_id))
+        exercise = result.scalar_one_or_none()
+        if exercise:
+            exercise.media = file_path.name
+            await session.commit()

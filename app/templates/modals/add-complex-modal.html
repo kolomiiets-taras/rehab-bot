@@ -1,0 +1,45 @@
+<!-- templates/modals/add-complex-modal.html -->
+<div class="modal fade" id="addComplexModal" tabindex="-1" role="dialog" aria-labelledby="addComplexModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form method="post" action="/complexes/add">
+      <div class="modal-content">
+        <!-- Заголовок -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="addComplexModalLabel">Додати комплекс</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Закрити">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <!-- Тіло модалки -->
+        <div class="modal-body">
+          <!-- Назва комплексу -->
+          <div class="form-group">
+            <label for="complex-name">Назва комплексу</label>
+            <input type="text" class="form-control" id="complex-name" name="name" required>
+          </div>
+
+          <!-- Вибір вправ (Select2) -->
+          <div class="form-group">
+            <label for="exercise-select">Виберіть вправи</label>
+            <select id="exercise-select" class="form-control" multiple="multiple" style="width: 100%;"></select>
+          </div>
+
+          <!-- Список обраних вправ -->
+          <div class="form-group">
+            <label>Обрані вправи</label>
+            <ul id="selected-exercises" class="list-group mb-2"></ul>
+            <!-- Скрытое поле для JSON -->
+            <input type="hidden" name="exercises_json" id="exercises-json">
+          </div>
+        </div>
+
+        <!-- Футер модалки -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+          <button type="submit" class="btn btn-primary">Зберегти</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

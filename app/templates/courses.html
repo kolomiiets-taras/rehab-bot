@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Курси{% endblock %}
+{% set body_class = "page-to" %}
+
+{% block content %}
+    <div id="wrapper">
+        {% include "partials/sidebar.html" %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include "partials/topbar.html" %}
+                <div class="container-fluid">
+                    {% include "partials/alert.html" %}
+
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Курси</h1>
+                        <button class="btn btn-sm btn-success shadow-sm" data-toggle="modal"
+                                data-target="#addCourseModal">
+                            <i class="fas fa-plus fa-sm text-white-50"></i> Додати Курс
+                        </button>
+                        {% include "modals/add-course-modal.html" %}
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Назва</th>
+                                        <th>Кількість елементів</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for course in courses %}
+                                        <tr>
+                                            <td>{{ course.id }}</td>
+                                            <td>{{ course.name }}</td>
+                                            <td>{{ course.items|length }}</td>
+                                            <td>
+                                                <a href="/courses/{{ course.id }}" class="btn btn-sm btn-info">Переглянути</a>
+                                                <button class="btn btn-sm btn-danger" data-toggle="modal"
+                                                        data-target="#deleteCourseModal{{ course.id }}">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% include "modals/delete-course-modal.html" %}
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', path='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', path='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/pagination.js') }}"></script>
+    <!-- JS для роботи Select2, драг-н-дропу і оновлення списку -->
+    <script src="{{ url_for('static', path='js/add-course-modal.js') }}"></script>
+{% endblock %}

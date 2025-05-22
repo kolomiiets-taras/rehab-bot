@@ -1,0 +1,34 @@
+<!-- Модальне вікно редагування співробітника -->
+<div class="modal fade" id="editExerciseModal{{ exercise.id }}" tabindex="-1" role="dialog"
+     aria-labelledby="editExerciseModalLabel{{ exercise.id }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="post" action="/exercises/{{ exercise.id }}/edit" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editExerciseModalLabel{{ exercise.id }}">Редагувати вправу</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Закрити">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Назва</label>
+                        <input type="text" name="title" class="form-control" value="{{ exercise.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Текст</label>
+                        <textarea name="text" class="form-control" rows="5">{{ exercise.text }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Медіа файл</label>
+                        <input type="file" name="media" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

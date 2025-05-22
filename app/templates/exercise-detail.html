@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Вправа{% endblock %}
+
+{% set body_class = "page-to" %}
+{% block content %}
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include "partials/sidebar.html" %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include "partials/topbar.html" %}
+                <!-- End of Topbar -->
+                <div class="container-fluid">
+                    {% include "partials/alert.html" %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Вправа</h1>
+                        <a href="/users" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                            <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+                            Назад до списку
+                        </a>
+                        <!-- Modal -->
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                               {{ exercise.title }}
+                            </h6>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-warning shadow-sm" data-toggle="modal" data-target="#editExerciseModal{{ exercise.id }}">
+                                    <i class="fas fa-edit fa-sm text-white-50"></i> Редагувати
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteExerciseModal{{ exercise.id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                        <div class="row">
+                        <div class="col">
+                            {% if exercise.media == 'processing' %}
+                                <img style="width: 100%; max-width: 500px;" src="{{ url_for('static', path='img/media_placeholder.png') }}"
+                                     class="img-fluid mb-2 rounded" alt="preview">
+                            {% elif exercise.media.endswith('.mp4') %}
+                                <video class="img-fluid mb-2 rounded" style="width: 100%; max-width: 500px;" height="120" controls>
+                                    <source src="{{ url_for('static', path='exercises_media/' + exercise.media) }}"
+                                            type="video/mp4">
+                                    Ваш браузер не підтримує відео.
+                                </video>
+                            {% else %}
+                                <img style="width: 100%; max-width: 500px;" src="{{ url_for('static', path='exercises_media/' + exercise.media) }}"
+                                     class="img-fluid mb-2 rounded" alt="preview">
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <p><strong>ID:</strong> {{ exercise.id }}</p>
+                            <p><strong>Назва:</strong> {{ exercise.title }}</p>
+                            <p><strong>Опис:</strong> {{ exercise.text }}</p>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include "modals/edit-exercise-modal.html" %}
+    {% include "modals/delete-exercise-modal.html" %}
+{% endblock %}

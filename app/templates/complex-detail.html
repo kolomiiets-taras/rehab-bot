@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Комплекс{% endblock %}
+
+{% set body_class = "page-to" %}
+{% block content %}
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include "partials/sidebar.html" %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include "partials/topbar.html" %}
+                <!-- End of Topbar -->
+                <div class="container-fluid">
+                    {% include "partials/alert.html" %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Комплекс</h1>
+                        <a href="/complexes/" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                            <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+                            Назад до списку
+                        </a>
+                        <!-- Modal -->
+                    </div>
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                {{ complex.name }}
+                            </h6>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-warning shadow-sm" data-toggle="modal"
+                                        data-target="#editComplexModal{{ complex.id }}">
+                                    <i class="fas fa-edit fa-sm text-white-50"></i> Редагувати
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal"
+                                        data-target="#deleteComplexModal{{ complex.id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>ID:</strong> {{ complex.id }}</p>
+                            <p><strong>Назва:</strong> {{ complex.name }}</p>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Назва вправи</th>
+                                            <th>Дія</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for item in complex.exercises %}
+                                            <tr>
+                                                <td>{{ item.exercise.id }}</td>
+                                                <td>{{ item.exercise.title }}</td>
+                                                <td>
+                                                    <a href="/exercises/{{ item.exercise.id }}"
+                                                       class="btn btn-sm btn-info">Переглянути</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include "modals/delete-complex-modal.html" %}
+    {% include "modals/edit-complex-modal.html" %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', path='js/edit-complex-modal.js') }}"></script>
+{% endblock %}
