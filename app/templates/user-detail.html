@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Пацієнти{% endblock %}
+{% block title %}Пацієнт — {{ user.last_name }} {{ user.first_name }}{% endblock %}
 
 {% set body_class = "page-to" %}
 {% block content %}
@@ -28,7 +28,6 @@
                             <i class="fas fa-arrow-left fa-sm text-white-50"></i>
                             Назад до списку
                         </a>
-                        <!-- Modal -->
                     </div>
 
                     <div class="card shadow mb-4">
@@ -50,14 +49,13 @@
                             <p><strong>Telegram ID:</strong> {{ user.telegram_id }}</p>
                             <p><strong>Телефон:</strong> {{ user.phone or '-' }}</p>
                             <p><strong>Дата народження:</strong> {{ user.birthday or '-' }}</p>
-{#                            <p><strong>Час розсилки:</strong> {{ user.mailing_time or '-' }}</p>#}
                             <p><strong>Дата реєстрації:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                         </div>
                     </div>
 
                     <div class="row">
 
-                        <!-- Area Chart -->
+                        <!-- Pulse Chart -->
                         <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <!-- Card Header - Dropdown -->
@@ -67,13 +65,12 @@
                                 <!-- Card Body -->
                                 <div class="card-body">
                                     <div class="chart-area" style="position: relative;">
-                                        <canvas id="myAreaChart"></canvas>
+                                        <canvas id="myPulseChart"></canvas>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pie Chart -->
                         <div class="col-xl-4 col-lg-5">
                             <div class="card shadow mb-4">
                                 <!-- Card Header - Dropdown -->
@@ -86,6 +83,23 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Wellbeing Chart -->
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header - Dropdown -->
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Самопочуття</h6>
+                                </div>
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                    <div class="chart-area" style="position: relative;">
+                                        <canvas id="myWellbeingChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -98,14 +112,34 @@
     <!-- Page level plugins -->
     <script src="{{ url_for('static', path='vendor/chart.js/Chart.min.js') }}"></script>
     <script type="module">
-        import {renderPulseChart} from "{{ url_for('static', path='js/pulse-chart.js') }}";
+        import {renderChart} from "{{ url_for('static', path='js/chart.js') }}";
 
-        const ctx = document.getElementById("myAreaChart").getContext("2d");
-        renderPulseChart(
-            ctx,
-            {{ chart_data.labels | tojson }},
-            {{ chart_data.pulse_before | tojson }},
-            {{ chart_data.pulse_after | tojson }}
+        const ctx_pulse = document.getElementById("myPulseChart").getContext("2d");
+        renderChart(
+            ctx_pulse,
+            {{ pulse_chart_data.labels | tojson }},
+            {{ pulse_chart_data.pulse_before | tojson }},
+            {{ pulse_chart_data.pulse_after | tojson }},
+            {{ pulse_chart_data.before_name | tojson }},
+            {{ pulse_chart_data.after_name | tojson}},
+            {{ pulse_chart_data.units | tojson}}
         );
+
+        const ctx_wellness = document.getElementById("myWellbeingChart").getContext("2d");
+        renderChart(
+            ctx_wellness,
+            {{ wellness_chart_data.labels | tojson }},
+            {{ wellness_chart_data.wellbeing_before | tojson }},
+            {{ wellness_chart_data.wellbeing_after | tojson }},
+            {{ wellness_chart_data.before_name | tojson}},
+            {{ wellness_chart_data.after_name | tojson}},
+            {{ wellness_chart_data.units | tojson}}
+        );
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script>
+        $(function () {
+            $('[data-toggle="popover"]').popover();
+        });
     </script>
 {% endblock %}

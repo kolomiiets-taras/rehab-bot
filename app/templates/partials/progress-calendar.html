@@ -3,11 +3,28 @@
     <div class="row">
         {% for day in course_days %}
             <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
-                <div class="card
+                <div tabindex="0" class="card
                     {% if day.status == 'done' %} border-left-success
-                    {% elif day.status == 'missed' %} border-left-secondary
+                    {% elif day.status == 'missed' %} border-left-danger
                     {% else %} border-left-secondary {% endif %}
-                    shadow h-100 py-2">
+                    {% if day.current %} bg-info text-white {% endif %}
+                    shadow h-100 py-2"
+                     role="button"
+                     data-toggle="popover"
+                     data-trigger="hover"
+                     title={{ day.date }}
+                     data-html="true"
+                     data-content="
+                         <strong>Статус:</strong>
+                            {% if day.status == 'done' %} Виконано
+                            {% elif day.status == 'missed' %} Пропущено
+                            {% else %} Не відправлено {% endif %}<br>
+                         <strong>Вправа/комплекс:</strong> {{ day.exercise }}<br>
+                         <strong>Пульс до:</strong> {{ day.pulse_before }}<br>
+                         <strong>Пульс після:</strong> {{ day.pulse_after }}<br>
+                         <strong>Самопочуття до:</strong> {{ day.wellbeing_before }}<br>
+                         <strong>Самопочуття після:</strong> {{ day.wellbeing_after }}
+                     ">
                     <div class="card-body py-2 text-left pl-2">
                         <span class="font-weight-bold small d-block" style="white-space: nowrap;">
                             {{ day.date }}

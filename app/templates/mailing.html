@@ -38,6 +38,7 @@
                                         <th>Пацієнт</th>
                                         <th>Курс</th>
                                         <th>Створено</th>
+                                        <th>Прогрес</th>
                                         <th>Завершено</th>
                                         <th>Час розсилки</th>
                                         <th>Дні розсилки</th>
@@ -51,19 +52,50 @@
                                             <td>{{ mailing.user.last_name }} {{ mailing.user.first_name }}</td>
                                             <td>{{ mailing.course.name }}</td>
                                             <td>{{ mailing.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td style="max-width: 120px; font-family: monospace; white-space: normal;">
+                                              {% for status in mailing.progress %}
+                                                {% if loop.index0 != 0 and loop.index0 % 10 == 0 %}
+                                                  <br>
+                                                {% endif %}
+                                                  {% set is_current = loop.index == mailing.current_position %}
+                                                {% if status == '0' %}
+                                                  <span title="Не надіслано" class="badge badge-secondary {{ 'border border-dark' if is_current else '' }}">•</span>
+                                                {% elif status == '1' %}
+                                                  <span title="Виконано" class="badge badge-success {{ 'border border-dark' if is_current else '' }}">✓</span>
+                                                {% elif status == '2' %}
+                                                  <span title="Не виконано" class="badge badge-warning {{ 'border border-dark' if is_current else '' }}">✗</span>
+                                                {% endif %}
+                                              {% endfor %}
+                                            </td>
                                             <td>{{ 'Так' if mailing.finished else 'Ні'}}</td>
                                             <td>{{ mailing.mailing_time }}</td>
                                             <td>{{ mailing.days_str }}</td>
                                             <td>
-                                                <a href="/mailing/{{ mailing.id }}"
-                                                   class="btn btn-sm btn-info">Переглянути</a>
+                                                 <button class="btn btn-sm btn-info" data-toggle="modal"
+                                                        data-target="#editMailingModal{{ mailing.id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
                                                 <button class="btn btn-sm btn-danger" data-toggle="modal"
-                                                        data-target="#deleteModal{{ mailing.id }}">
+                                                        data-target="#deleteMailingModal{{ mailing.id }}">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
+                                                {% if mailing.finished %}
+                                                    <button class="btn btn-sm btn-success" data-toggle="modal"
+                                                        data-target="#startMailingModal{{ mailing.id }}">
+                                                        <i class="fa-regular fa-circle-play"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                                            data-target="#stopMailingModal{{ mailing.id }}">
+                                                        <i class="fa-regular fa-circle-stop"></i>
+                                                    </button>
+                                                {% endif %}
                                             </td>
                                         </tr>
-{#                                        {% include "modals/delete-user-modal.html" %}#}
+                                        {% include "modals/delete-mailing-modal.html" %}
+                                        {% include "modals/stop-mailing-modal.html" %}
+                                        {% include "modals/start-mailing-modal.html" %}
+                                        {% include "modals/edit-mailing-modal.html" %}
                                     {% endfor %}
                                     </tbody>
                                 </table>

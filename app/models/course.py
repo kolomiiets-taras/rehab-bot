@@ -25,3 +25,11 @@ class CourseItem(Base):
     course = relationship("Course", back_populates="items")
     complex = relationship("Complex")
     exercise = relationship("Exercise")
+
+    @property
+    def type(self) -> str:
+        if self.exercise_id:
+            return "exercise"
+        elif self.complex_id:
+            return "complex"
+        return "unknown"

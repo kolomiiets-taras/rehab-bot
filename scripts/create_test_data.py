@@ -43,7 +43,7 @@ async def populate_test_data():
             session.add(course)
             await session.flush()
 
-            selected_complexes = faker.random_elements(elements=complexes, length=3, unique=True)
+            selected_complexes = faker.random_elements(elements=complexes, length=5, unique=True)
             for pos, cx in enumerate(selected_complexes):
                 session.add(CourseItem(course_id=course.id, complex_id=cx.id, position=pos))
             courses.append(course)
@@ -63,8 +63,8 @@ async def populate_test_data():
             await session.flush()
 
             course = faker.random_element(elements=courses)
-            progress = ''.join(faker.random_choices(elements=["0", "1"], length=14))
-            current_position = faker.random_int(min=0, max=len(progress)-1)
+            progress = '11220'
+            current_position = 4
             user_course = UserCourse(
                 user_id=user.id,
                 course_id=course.id,

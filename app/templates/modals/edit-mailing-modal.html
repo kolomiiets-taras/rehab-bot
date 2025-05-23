@@ -1,0 +1,70 @@
+<!-- Модальне вікно редагування -->
+<div class="modal fade" id="editMailingModal{{ mailing.id }}" tabindex="-1" role="dialog"
+     aria-labelledby="editMailingModalLabel{{ mailing.id }}"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="post" action="/mailing/edit/{{ mailing.id }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMailingModalLabel{{ mailing.id }}">Редагувати розсилку</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Закрити">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Курс -->
+                    <div class="form-group">
+                        <label for="course-select">Виберіть Курс</label>
+                        <select id="course-select" name="course_id" class="form-control"
+                                style="width: 100%;">
+                            <option></option>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}"
+                                        {% if course.id == mailing.course_id %}selected{% endif %}>
+                                    {{ course.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Час -->
+                    <div class="form-group">
+                        <label for="mailing-time">Час розсилки</label>
+                        <select id="mailing-time" name="mailing_time" class="form-control" style="width: 100%;">
+                            {% for hour in range(0, 24) %}
+                                {% set time_str1 = "%02d:00"|format(hour) %}
+                                {% set time_str2 = "%02d:30"|format(hour) %}
+                                <option value="{{ time_str1 }}"
+                                        {% if mailing.mailing_time|string == time_str1 %}selected{% endif %}>{{ time_str1 }}</option>
+                                <option value="{{ time_str2 }}"
+                                        {% if mailing.mailing_time|string == time_str2 %}selected{% endif %}>{{ time_str2 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Дні -->
+                    <div class="form-group">
+                        <label>Дні розсилки</label>
+                        <div class="form-check">
+                            {% set days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П’ятниця', 'Субота', 'Неділя'] %}
+                            {% set selected_days = mailing.mailing_days.split(',') %}
+                            {% for day in days %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="mailing_days"
+                                           value="{{ loop.index }}"
+                                           {% if loop.index|string in selected_days %}checked{% endif %}
+                                           id="day-{{ loop.index }}">
+                                    <label class="form-check-label" for="day-{{ loop.index }}">{{ day }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                        <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

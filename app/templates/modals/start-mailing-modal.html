@@ -1,0 +1,20 @@
+<!-- Модалка: Підтвердження видалення курсу -->
+<div class="modal fade" id="startMailingModal{{ mailing.id }}" tabindex="-1" role="dialog" aria-labelledby="startMailingModalLabel{{ mailing.id }}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form method="post" action="/mailing/start/{{ mailing.id }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Підтвердьте відновлення розсилки</h5>
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        </div>
+        <div class="modal-body">
+          Ви точно хочете відновити розсилку <strong>ID: {{ mailing.id }}</strong>?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+          <button type="submit" class="btn btn-danger">Відновити</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

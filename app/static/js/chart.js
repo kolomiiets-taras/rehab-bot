@@ -22,14 +22,14 @@ function number_format(number, decimals = 0, dec_point = '.', thousands_sep = ',
   return s.join(dec);
 }
 
-export function renderPulseChart(ctx, labels, pulseBefore, pulseAfter) {
+export function renderChart(ctx, labels, before, after, beforeName, afterName, units) {
   new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
       datasets: [
         {
-          label: "Пульс до",
+          label: beforeName,
           lineTension: 0.3,
           backgroundColor: "rgba(78, 115, 223, 0.05)",
           borderColor: "rgba(78, 115, 223, 1)",
@@ -41,10 +41,10 @@ export function renderPulseChart(ctx, labels, pulseBefore, pulseAfter) {
           pointHoverBorderColor: "rgba(78, 115, 223, 1)",
           pointHitRadius: 10,
           pointBorderWidth: 2,
-          data: pulseBefore
+          data: before
         },
         {
-          label: "Пульс після",
+          label: afterName,
           lineTension: 0.3,
           backgroundColor: "rgba(231, 74, 59, 0.05)",
           borderColor: "rgba(231, 74, 59, 1)",
@@ -56,7 +56,7 @@ export function renderPulseChart(ctx, labels, pulseBefore, pulseAfter) {
           pointHoverBorderColor: "rgba(231, 74, 59, 1)",
           pointHitRadius: 10,
           pointBorderWidth: 2,
-          data: pulseAfter
+          data: after
         }
       ]
     },
@@ -109,7 +109,7 @@ export function renderPulseChart(ctx, labels, pulseBefore, pulseAfter) {
         callbacks: {
           label: function(tooltipItem, chart) {
             const datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-            return datasetLabel + ': ' + number_format(tooltipItem.yLabel) + ' уд/хв';
+            return datasetLabel + ': ' + number_format(tooltipItem.yLabel) + ' ' + units;
           }
         }
       }

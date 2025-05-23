@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
-from app.models import Role
+from app.models import Role, Course, CourseItem
 from app.models.user import User, UserCourse
 from sqlalchemy import select, or_, String, func
 from datetime import datetime, date, timedelta, time
@@ -14,6 +14,14 @@ from .utils import access_for
 router = APIRouter(prefix="/users")
 templates = app_config.TEMPLATES
 ITEMS_PER_PAGE = 10
+
+WELLNESS_EMOJI_MAP = {
+    1: "😖",  # Дуже погано
+    2: "😕",  # Погано
+    3: "😐",  # Нейтрально
+    4: "🙂",  # Добре
+    5: "😄",  # Дуже добре
+}
 
 
 @router.get("/")
@@ -104,17 +112,38 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
     user_course = course_result.scalar_one_or_none()
 
     sessions = user_course.sessions
-    chart_data = {
+    pulse_chart_data = {
         "labels": [s.date.strftime("%d.%m") for s in sessions],
+        "before_name": "Пульс до",
+        "after_name": "Пульс після",
         "pulse_before": [s.pulse_before or 0 for s in sessions],
         "pulse_after": [s.pulse_after or 0 for s in sessions],
+        "units": "уд/хв",
+    }
+
+    wellness_chart_data = {
+        "labels": [s.date.strftime("%d.%m") for s in sessions],
+        "before_name": "Самопочуття до",
+        "after_name": "Самопочуття після",
+        "wellbeing_before": [s.wellbeing_before or 0 for s in sessions],
+        "wellbeing_after": [s.wellbeing_after or 0 for s in sessions],
+        "units": "балів",
     }
 
     # календарь прогресу
     result = await db.execute(
         select(UserCourse)
         .where(UserCourse.user_id == user_id)
-        .options(selectinload(UserCourse.course))
+        .options(
+            selectinload(UserCourse.course)
+            .selectinload(Course.items),  # сначала items
+            selectinload(UserCourse.course)
+            .selectinload(Course.items)
+            .selectinload(CourseItem.complex),
+            selectinload(UserCourse.course)
+            .selectinload(Course.items)
+            .selectinload(CourseItem.exercise)
+        )
     )
     user_course = result.scalar_one_or_none()
 
@@ -123,22 +152,42 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         start_date = user_course.created_at.date()
         progress_bits = user_course.progress.strip()
         for i, bit in enumerate(progress_bits):
+            if bit == "0":
+                status = 'not_sent'
+            elif bit == "1":
+                status = 'done'
+            else:
+                status = 'missed'
+            pulse_before = sessions[i].pulse_before or '-'
+            pulse_after = sessions[i].pulse_after or '-'
+            wellbeing_before = sessions[i].wellbeing_before or '-'
+            wellbeing_after = sessions[i].wellbeing_after or '-'
+            if user_course.course.items[i].type == "exercise":
+                exercise_title = user_course.course.items[i].exercise.title
+            else:
+                exercise_title = user_course.course.items[i].complex.name
             course_days.append({
                 "date": (start_date + timedelta(days=i)).strftime("%d-%m"),
-                "status": "done" if bit == "1" else "missed",
-                "current": (i == user_course.current_position)
+                "status": status,
+                "current": (i + 1 == user_course.current_position),
+                "exercise": exercise_title,
+                "pulse_before": pulse_before,
+                "pulse_after": pulse_after,
+                "wellbeing_before": WELLNESS_EMOJI_MAP[wellbeing_before],
+                "wellbeing_after": WELLNESS_EMOJI_MAP[wellbeing_after]
             })
 
     return templates.TemplateResponse("user-detail.html", {
         "request": request,
         "user": user,
-        "chart_data": chart_data,
+        "pulse_chart_data": pulse_chart_data,
+        "wellness_chart_data": wellness_chart_data,
         "course": user_course.course if user_course else None,
         "course_days": course_days
     })
 
 
-@router.post("/{user_id}/edit")
+@router.post("/edit/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
 async def edit_user(
     user_id: int,
