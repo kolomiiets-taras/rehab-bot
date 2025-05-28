@@ -1,4 +1,4 @@
-WELLNESS_EMOJI_MAP = {
+WELLBEING_EMOJI_MAP = {
     1: "😖",  # Дуже погано
     2: "😕",  # Погано
     3: "😐",  # Нейтрально

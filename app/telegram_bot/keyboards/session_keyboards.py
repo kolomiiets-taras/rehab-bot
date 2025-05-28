@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from app.constants import WELLNESS_EMOJI_MAP
+from app.constants import WELLBEING_EMOJI_MAP
 from app.telegram_bot.middlewares.localization import i18n
 
 _ = i18n.gettext
@@ -30,9 +30,9 @@ def finish_keyboard(session_id: int):
 
 def wellbeing_keyboard():
     builder = InlineKeyboardBuilder()
-    for key, value in WELLNESS_EMOJI_MAP.items():
+    for key, value in WELLBEING_EMOJI_MAP.items():
         builder.button(text=value, callback_data=f'wellbeing_{key}')
-    builder.adjust(len(WELLNESS_EMOJI_MAP))
+    builder.adjust(len(WELLBEING_EMOJI_MAP))
     return builder.as_markup()
 
 

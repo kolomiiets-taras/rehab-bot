@@ -116,7 +116,7 @@ async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, s
         return
 
     try:
-        wellness_value = int(parts[1])
+        wellbeing_value = int(parts[1])
     except ValueError:
         await callback.answer(_('error.general'), show_alert=True)
         return
@@ -128,7 +128,7 @@ async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, s
         await state.clear()
         return
 
-    daily_session.wellness_before = wellness_value
+    daily_session.wellbeing_before = wellbeing_value
     await callback.message.answer(_('session.wellbeing_saved'))
 
     await state.set_state(Session.exercise)
@@ -157,7 +157,7 @@ async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, se
         return
 
     try:
-        wellness_value = int(parts[1])
+        wellbeing_value = int(parts[1])
     except ValueError:
         await callback.answer(_('error.general'), show_alert=True)
         return
@@ -169,7 +169,7 @@ async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, se
         await state.clear()
         return
 
-    daily_session.wellness_after = wellness_value
+    daily_session.wellbeing_after = wellbeing_value
     await callback.message.answer(_('session.wellbeing_saved'))
     await callback.message.answer(_('session.finished'))
 

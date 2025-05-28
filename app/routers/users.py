@@ -10,7 +10,7 @@ from app.models.user import User, UserCourse
 from sqlalchemy import select, or_, String, func, and_
 from datetime import datetime, date, timedelta, time
 from .utils import access_for
-from ..constants import WELLNESS_EMOJI_MAP
+from ..constants import WELLBEING_EMOJI_MAP
 
 router = APIRouter(prefix="/users")
 templates = app_config.TEMPLATES
@@ -128,7 +128,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         "units": "уд/хв",
     }
 
-    wellness_chart_data = {
+    wellbeing_chart_data = {
         "labels": [s.date.strftime("%d.%m") for s in sessions],
         "before_name": "Самопочуття до",
         "after_name": "Самопочуття після",
@@ -169,15 +169,15 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
                 "exercise": exercise_title,
                 "pulse_before": pulse_before,
                 "pulse_after": pulse_after,
-                "wellbeing_before": WELLNESS_EMOJI_MAP.get(wellbeing_before, '-'),
-                "wellbeing_after": WELLNESS_EMOJI_MAP.get(wellbeing_after, '-'),
+                "wellbeing_before": WELLBEING_EMOJI_MAP.get(wellbeing_before, '-'),
+                "wellbeing_after": WELLBEING_EMOJI_MAP.get(wellbeing_after, '-'),
             })
 
     return templates.TemplateResponse("user-detail.html", {
         "request": request,
         "user": user,
         "pulse_chart_data": pulse_chart_data,
-        "wellness_chart_data": wellness_chart_data,
+        "wellbeing_chart_data": wellbeing_chart_data,
         "course": user_course.course if user_course else None,
         "course_days": course_days
     })
