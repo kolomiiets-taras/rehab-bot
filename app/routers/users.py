@@ -10,18 +10,11 @@ from app.models.user import User, UserCourse
 from sqlalchemy import select, or_, String, func
 from datetime import datetime, date, timedelta, time
 from .utils import access_for
+from ..constants import WELLNESS_EMOJI_MAP
 
 router = APIRouter(prefix="/users")
 templates = app_config.TEMPLATES
 ITEMS_PER_PAGE = 10
-
-WELLNESS_EMOJI_MAP = {
-    1: "😖",  # Дуже погано
-    2: "😕",  # Погано
-    3: "😐",  # Нейтрально
-    4: "🙂",  # Добре
-    5: "😄",  # Дуже добре
-}
 
 
 @router.get("/")
@@ -107,11 +100,25 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
     course_result = await db.execute(
         select(UserCourse)
         .where(UserCourse.user_id == user_id)
-        .options(selectinload(UserCourse.sessions))
+        .options(
+            selectinload(UserCourse.course)
+            .selectinload(Course.items),  # сначала items
+            selectinload(UserCourse.course)
+            .selectinload(Course.items)
+            .selectinload(CourseItem.complex),
+            selectinload(UserCourse.course)
+            .selectinload(Course.items)
+            .selectinload(CourseItem.exercise),
+            selectinload(UserCourse.sessions)
+        )
     )
     user_course = course_result.scalar_one_or_none()
 
-    sessions = user_course.sessions
+    if user_course:
+        sessions = user_course.sessions
+    else:
+        sessions = []
+
     pulse_chart_data = {
         "labels": [s.date.strftime("%d.%m") for s in sessions],
         "before_name": "Пульс до",
@@ -130,23 +137,6 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         "units": "балів",
     }
 
-    # календарь прогресу
-    result = await db.execute(
-        select(UserCourse)
-        .where(UserCourse.user_id == user_id)
-        .options(
-            selectinload(UserCourse.course)
-            .selectinload(Course.items),  # сначала items
-            selectinload(UserCourse.course)
-            .selectinload(Course.items)
-            .selectinload(CourseItem.complex),
-            selectinload(UserCourse.course)
-            .selectinload(Course.items)
-            .selectinload(CourseItem.exercise)
-        )
-    )
-    user_course = result.scalar_one_or_none()
-
     course_days = []
     if user_course and user_course.progress:
         start_date = user_course.created_at.date()
@@ -158,11 +148,17 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
                 status = 'done'
             else:
                 status = 'missed'
-            pulse_before = sessions[i].pulse_before or '-'
-            pulse_after = sessions[i].pulse_after or '-'
-            wellbeing_before = sessions[i].wellbeing_before or '-'
-            wellbeing_after = sessions[i].wellbeing_after or '-'
-            if user_course.course.items[i].type == "exercise":
+            if sessions and status in ['done', 'missed']:
+                pulse_before = sessions[i].pulse_before or '-'
+                pulse_after = sessions[i].pulse_after or '-'
+                wellbeing_before = sessions[i].wellbeing_before or '-'
+                wellbeing_after = sessions[i].wellbeing_after or '-'
+            else:
+                pulse_before = '-'
+                pulse_after = '-'
+                wellbeing_before = '-'
+                wellbeing_after = '-'
+            if user_course.course.items[i].is_exercise:
                 exercise_title = user_course.course.items[i].exercise.title
             else:
                 exercise_title = user_course.course.items[i].complex.name
@@ -173,8 +169,8 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
                 "exercise": exercise_title,
                 "pulse_before": pulse_before,
                 "pulse_after": pulse_after,
-                "wellbeing_before": WELLNESS_EMOJI_MAP[wellbeing_before],
-                "wellbeing_after": WELLNESS_EMOJI_MAP[wellbeing_after]
+                "wellbeing_before": WELLNESS_EMOJI_MAP.get(wellbeing_before, '-'),
+                "wellbeing_after": WELLNESS_EMOJI_MAP.get(wellbeing_after, '-'),
             })
 
     return templates.TemplateResponse("user-detail.html", {

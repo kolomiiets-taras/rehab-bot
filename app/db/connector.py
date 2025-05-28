@@ -11,7 +11,13 @@ async def create_db_and_tables() -> None:
 
 async def add_first_admin() -> None:
     async with async_session() as session:
-        admin = Employee(email="admin@admin.com", password=bcrypt.hash("1234"), role=Role.ADMIN)
+        admin = Employee(
+            first_name="Admin",
+            last_name="Adminov",
+            email="owner@owner.com",
+            password=bcrypt.hash("1234"),
+            role=Role.OWNER
+        )
         session.add(admin)
         await session.commit()
         if await session.get(Employee, admin.id):

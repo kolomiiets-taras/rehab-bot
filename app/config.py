@@ -30,6 +30,10 @@ class Config:
 
     MEDIA_PATH = BASE_DIR / 'app' / 'static' / 'exercises_media'
     LOGS_PATH = BASE_DIR / 'logs'
+    LOCALES_PATH = BASE_DIR / 'app' / 'telegram_bot' / 'locales'
+
+    SUPPORTED_LANGUAGES = ['uk']
+    DEFAULT_LANGUAGE = 'uk'
 
     def __init__(self):
         if not self.MEDIA_PATH.exists():

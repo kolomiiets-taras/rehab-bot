@@ -25,11 +25,12 @@ class CourseItem(Base):
     course = relationship("Course", back_populates="items")
     complex = relationship("Complex")
     exercise = relationship("Exercise")
+    sessions = relationship("DailySession", back_populates="course_item", cascade="all, delete-orphan")
 
     @property
-    def type(self) -> str:
-        if self.exercise_id:
-            return "exercise"
-        elif self.complex_id:
-            return "complex"
-        return "unknown"
+    def is_exercise(self) -> bool:
+        return self.exercise_id is not None
+
+    @property
+    def is_complex(self) -> bool:
+        return self.complex_id is not None

@@ -4,6 +4,7 @@ from enum import IntEnum
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Boolean, Text, Time
 from sqlalchemy.orm import relationship
 
+from app.config import app_config
 from app.db import Base
 
 
@@ -17,6 +18,7 @@ class User(Base):
     last_name = Column(String(100), nullable=True)
     birthday = Column(Date, nullable=True)
     created_at = Column(DateTime, default=datetime.now, index=True)
+    language = Column(String(10), nullable=True, default=app_config.DEFAULT_LANGUAGE)
 
     courses = relationship("UserCourse", back_populates="user", cascade="all, delete-orphan")
 
@@ -67,6 +69,7 @@ class DailySession(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_course_id = Column(Integer, ForeignKey("user_course.id", ondelete="CASCADE"), nullable=False)
+    course_item_id = Column(Integer, ForeignKey("course_item.id", ondelete="CASCADE"), nullable=False)
     date = Column(Date, nullable=False)
     position = Column(Integer, nullable=False, default=0)
     pulse_before = Column(Integer, nullable=True)
@@ -76,3 +79,4 @@ class DailySession(Base):
     wellbeing_after = Column(Integer, nullable=True)
 
     user_course = relationship("UserCourse", back_populates="sessions")
+    course_item = relationship("CourseItem", back_populates="sessions")

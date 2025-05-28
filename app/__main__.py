@@ -16,16 +16,17 @@ from app.routers import (
     mailing_router,
     index_router
 )
-from app.db.connector import create_db_and_tables, drop_db_tables
-from scripts.create_test_data import populate_test_data
+from app.db.connector import create_db_and_tables, drop_db_tables, add_first_admin
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
-    await populate_test_data()
+    # await populate_test_data()
+    # await add_first_admin()
     yield
-    await drop_db_tables()
+    # await drop_db_tables()
+
 
 app = FastAPI(lifespan=lifespan)
 

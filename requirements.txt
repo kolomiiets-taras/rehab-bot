@@ -13,3 +13,5 @@ python-jose
 pydantic[email]
 python-multipart
 faker
+aiogram
+Babel
