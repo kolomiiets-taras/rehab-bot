@@ -26,13 +26,8 @@ async def send_mailing(session: AsyncSession) -> None:
         )
     )
     user_courses = user_course_result.scalars().all()
-    print(user_courses)
     for user_course in user_courses:
-        print(user_course)
-        user_course.current_position += 1
-        if user_course.current_position == len(user_course.course.items):
-            user_course.finished = True
-        current_item = user_course.course.items[user_course.current_position - 1]
+        current_item = user_course.course.items[user_course.current_position]
         daily_session = DailySession(
             user_course_id=user_course.id,
             course_item_id=current_item.id,
@@ -40,9 +35,10 @@ async def send_mailing(session: AsyncSession) -> None:
             position=user_course.current_position
         )
         session.add(daily_session)
+        user_course.current_position += 1
+        if user_course.current_position == len(user_course.course.items):
+            user_course.finished = True
         await session.commit()
-        print(daily_session)
-        print(daily_session.id)
         await send_session(user_course.user.telegram_id, daily_session.id)
 
 

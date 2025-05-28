@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.models import Role, Course, CourseItem
 from app.models.user import User, UserCourse
-from sqlalchemy import select, or_, String, func
+from sqlalchemy import select, or_, String, func, and_
 from datetime import datetime, date, timedelta, time
 from .utils import access_for
 from ..constants import WELLNESS_EMOJI_MAP
@@ -98,7 +98,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         return RedirectResponse(url="/users?error=1", status_code=303)
 
     course_result = await db.execute(
-        select(UserCourse)
+        select(UserCourse).order_by(UserCourse.created_at.desc())
         .where(UserCourse.user_id == user_id)
         .options(
             selectinload(UserCourse.course)
@@ -112,7 +112,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
             selectinload(UserCourse.sessions)
         )
     )
-    user_course = course_result.scalar_one_or_none()
+    user_course = course_result.scalars().first()
 
     if user_course:
         sessions = user_course.sessions
@@ -165,7 +165,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
             course_days.append({
                 "date": (start_date + timedelta(days=i)).strftime("%d-%m"),
                 "status": status,
-                "current": (i + 1 == user_course.current_position),
+                "current": (i == user_course.current_position),
                 "exercise": exercise_title,
                 "pulse_before": pulse_before,
                 "pulse_after": pulse_after,

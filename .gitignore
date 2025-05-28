@@ -186,3 +186,4 @@ fabric.properties
 /.idea/Rehab.iml
 /.idea/.gitignore
 /.idea/vcs.xml
+/app/static/exercises_media/

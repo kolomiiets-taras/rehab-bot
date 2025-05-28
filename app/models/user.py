@@ -38,7 +38,7 @@ class UserCourse(Base):
 
     user = relationship("User", back_populates="courses")
     course = relationship("Course", back_populates="users")
-    sessions = relationship("DailySession", back_populates="user_course", cascade="all, delete-orphan")
+    sessions = relationship("DailySession", order_by="DailySession.position", back_populates="user_course", cascade="all, delete-orphan")
 
     @property
     def cron_expression(self) -> str:
