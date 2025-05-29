@@ -178,6 +178,10 @@ async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, se
 
     daily_session.user_course.progress = progress[:position] + '1' + progress[position + 1:]
 
+    daily_session.user_course.current_position += 1
+    if daily_session.user_course.current_position == len(daily_session.user_course.course.items):
+        daily_session.user_course.finished = True
+
     session.add(daily_session.user_course)
     session.add(daily_session)
     await session.commit()

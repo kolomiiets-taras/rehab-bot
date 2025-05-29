@@ -2,14 +2,15 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.constants import WELLBEING_EMOJI_MAP
 from app.telegram_bot.middlewares.localization import i18n
+from app.config import app_config
 
 _ = i18n.gettext
 
 
-def skip_start_keyboard(session_id: int):
+def skip_start_keyboard(session_id: int, locale: str = app_config.DEFAULT_LANGUAGE):
     builder = InlineKeyboardBuilder()
-    builder.button(text=_('keyboards.start'), callback_data=f'start_{session_id}')
-    builder.button(text=_('keyboards.skip'), callback_data=f'skip_{session_id}')
+    builder.button(text=_('keyboards.start', locale=locale), callback_data=f'start_{session_id}')
+    builder.button(text=_('keyboards.skip', locale=locale), callback_data=f'skip_{session_id}')
     builder.adjust(1)
     return builder.as_markup()
 

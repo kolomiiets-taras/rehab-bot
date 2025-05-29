@@ -90,6 +90,10 @@ msgstr "❌ Сесія не знайдена."
 msgid "session.finished"
 msgstr "Тренування завершено 💪"
 
+msgid "session.header"
+msgstr "🔹 <b>{course_title}</b> 🔹\n\n Тренування <b>{session_number}</b> з <b>{total_sessions}</b>."
+
+
 # error
 
 msgid "error.general"

@@ -35,11 +35,15 @@ async def send_mailing(session: AsyncSession) -> None:
             position=user_course.current_position
         )
         session.add(daily_session)
-        user_course.current_position += 1
-        if user_course.current_position == len(user_course.course.items):
-            user_course.finished = True
         await session.commit()
-        await send_session(user_course.user.telegram_id, daily_session.id)
+        await send_session(
+            user_course.user.telegram_id,
+            daily_session.id,
+            user_course.user.language,
+            course_title=user_course.course.name,
+            session_number=user_course.current_position + 1,
+            total_sessions=len(user_course.course.items)
+        )
 
 
 if __name__ == "__main__":

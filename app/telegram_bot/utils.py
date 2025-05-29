@@ -3,6 +3,7 @@ from aiogram.utils.markdown import html_decoration as hd
 from app.config import app_config
 from aiogram.types import Message, FSInputFile
 from app.telegram_bot.keyboards.session_keyboards import skip_start_keyboard, next_step_keyboard, finish_keyboard
+from app.telegram_bot.middlewares.localization import i18n
 
 
 async def send_exercise(
@@ -26,12 +27,22 @@ async def send_exercise(
     await method(**kwargs)
 
 
-async def send_session(chat_id: int, session_id: int) -> None:
-    message_text = f"🔹<b>{hd.quote('Start session')}</b>🔹"
+async def send_session(
+    chat_id: int,
+    session_id: int,
+    locale: str,
+    course_title: str,
+    session_number: int,
+    total_sessions: int
+) -> None:
+    message_text = i18n.gettext('session.header', locale=locale).format(
+        course_title=course_title, session_number=session_number, total_sessions=total_sessions
+    )
 
     await bot.send_message(
         chat_id=chat_id,
         text=message_text,
         parse_mode="HTML",
-        reply_markup=skip_start_keyboard(session_id=session_id)
+        reply_markup=skip_start_keyboard(session_id=session_id, locale=locale)
     )
+    await bot.session.close()
