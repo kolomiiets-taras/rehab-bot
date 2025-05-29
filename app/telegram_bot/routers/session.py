@@ -2,15 +2,15 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, Message
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.session_wraper import with_session
-from app.models import DailySession, CourseItem, Complex, ComplexExercise
+from app.models import DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course
 from app.telegram_bot.keyboards.session_keyboards import wellbeing_keyboard
 from app.telegram_bot.middlewares.localization import i18n
-from app.telegram_bot.routers.utils import validate_pulse
+from app.telegram_bot.routers.utils import validate_pulse, finish_session
 from app.telegram_bot.utils import send_exercise
 
 router = Router(name=__name__)
@@ -27,7 +27,7 @@ class Session(StatesGroup):
 
 @router.callback_query(F.data.startswith("start_"))
 @with_session
-async def session_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
+async def start_session_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
     session_id = int(callback.data.split('_')[1])
     result = await session.execute(select(DailySession).where(DailySession.id == session_id).options(
         selectinload(DailySession.course_item)
@@ -55,6 +55,28 @@ async def session_handler(callback: CallbackQuery, state: FSMContext, session: A
     await callback.message.answer(_('error.general'))
 
 
+@router.callback_query(F.data.startswith("skip_"))
+@with_session
+async def skip_session_handler(callback: CallbackQuery, session: AsyncSession) -> None:
+    session_id = int(callback.data.split('_')[1])
+    result = await session.execute(
+        select(DailySession)
+        .where(DailySession.id == session_id)
+        .options(
+            selectinload(DailySession.user_course)
+            .selectinload(UserCourse.course)
+            .selectinload(Course.items)
+        )
+    )
+    daily_session = result.scalar_one_or_none()
+    if daily_session:
+        await finish_session(daily_session, session, skipped=True)
+        await callback.message.answer(_('session.skipped'))
+        return
+
+    await callback.message.answer(_('session.not_found'))
+
+
 @router.message(Session.pulse_before)
 @with_session
 async def pulse_before_handler(message: Message, state: FSMContext, session: AsyncSession) -> None:
@@ -75,32 +97,6 @@ async def pulse_before_handler(message: Message, state: FSMContext, session: Asy
     daily_session.pulse_before = pulse
     await message.answer(_('session.pulse_saved'))
     await state.set_state(Session.wellbeing_before)
-    await message.answer(_('session.wellbeing'), reply_markup=wellbeing_keyboard())
-
-    session.add(daily_session)
-    await session.commit()
-
-
-@router.message(Session.pulse_after)
-@with_session
-async def pulse_after_handler(message: Message, state: FSMContext, session: AsyncSession) -> None:
-    pulse = message.text
-    if not validate_pulse(pulse):
-        await message.answer(_("session.pulse"))
-        return
-
-    pulse = int(pulse)
-    data = await state.get_data()
-    daily_session = data.get("daily_session")
-
-    if daily_session is None:
-        await message.answer(_('error.general'))
-        await state.clear()
-        return
-
-    daily_session.pulse_after = pulse
-    await message.answer(_('session.pulse_saved'))
-    await state.set_state(Session.wellbeing_after)
     await message.answer(_('session.wellbeing'), reply_markup=wellbeing_keyboard())
 
     session.add(daily_session)
@@ -148,47 +144,6 @@ async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, s
     await callback.answer()
 
 
-@router.callback_query(Session.wellbeing_after, F.data.startswith("wellbeing_"))
-@with_session
-async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
-    parts = callback.data.split("_")
-    if len(parts) != 2:
-        await callback.answer(_('error.general'), show_alert=True)
-        return
-
-    try:
-        wellbeing_value = int(parts[1])
-    except ValueError:
-        await callback.answer(_('error.general'), show_alert=True)
-        return
-
-    data = await state.get_data()
-    daily_session = data.get("daily_session")
-    if not daily_session:
-        await callback.message.answer(_('session.not_found'))
-        await state.clear()
-        return
-
-    daily_session.wellbeing_after = wellbeing_value
-    await callback.message.answer(_('session.wellbeing_saved'))
-    await callback.message.answer(_('session.finished'))
-
-    progress = daily_session.user_course.progress
-    position = daily_session.position
-
-    daily_session.user_course.progress = progress[:position] + '1' + progress[position + 1:]
-
-    daily_session.user_course.current_position += 1
-    if daily_session.user_course.current_position == len(daily_session.user_course.course.items):
-        daily_session.user_course.finished = True
-
-    session.add(daily_session.user_course)
-    session.add(daily_session)
-    await session.commit()
-    await state.clear()
-    await callback.answer()
-
-
 @router.callback_query(Session.exercise, F.data.startswith("next_"))
 async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
@@ -214,4 +169,61 @@ async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> N
 async def finish_exercises(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(Session.pulse_after)
     await callback.message.answer(_('session.pulse'))
+    await callback.answer()
+
+
+@router.message(Session.pulse_after)
+@with_session
+async def pulse_after_handler(message: Message, state: FSMContext, session: AsyncSession) -> None:
+    pulse = message.text
+    if not validate_pulse(pulse):
+        await message.answer(_("session.pulse"))
+        return
+
+    pulse = int(pulse)
+    data = await state.get_data()
+    daily_session = data.get("daily_session")
+
+    if daily_session is None:
+        await message.answer(_('error.general'))
+        await state.clear()
+        return
+
+    daily_session.pulse_after = pulse
+    await message.answer(_('session.pulse_saved'))
+    await state.set_state(Session.wellbeing_after)
+    await message.answer(_('session.wellbeing'), reply_markup=wellbeing_keyboard())
+
+    session.add(daily_session)
+    await session.commit()
+
+
+@router.callback_query(Session.wellbeing_after, F.data.startswith("wellbeing_"))
+@with_session
+async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
+    parts = callback.data.split("_")
+    if len(parts) != 2:
+        await callback.answer(_('error.general'), show_alert=True)
+        return
+
+    try:
+        wellbeing_value = int(parts[1])
+    except ValueError:
+        await callback.answer(_('error.general'), show_alert=True)
+        return
+
+    data = await state.get_data()
+    daily_session = data.get("daily_session")
+    if not daily_session:
+        await callback.message.answer(_('session.not_found'))
+        await state.clear()
+        return
+
+    daily_session.wellbeing_after = wellbeing_value
+    await callback.message.answer(_('session.wellbeing_saved'))
+    await callback.message.answer(_('session.finished'))
+
+    await finish_session(daily_session, session, skipped=False)
+
+    await state.clear()
     await callback.answer()
