@@ -80,7 +80,7 @@ export function renderChart(ctx, labels, before, after, beforeName, afterName, u
           ticks: {
             maxTicksLimit: 5,
             padding: 10,
-            callback: value => number_format(value) + ' уд/хв'
+            callback: value => number_format(value) + ' ' + units
           },
           gridLines: {
             color: "rgb(234, 236, 244)",

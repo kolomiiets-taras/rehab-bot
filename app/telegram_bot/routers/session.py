@@ -36,6 +36,8 @@ async def start_session_handler(callback: CallbackQuery, state: FSMContext, sess
         .selectinload(ComplexExercise.exercise),
         selectinload(DailySession.course_item).selectinload(CourseItem.exercise),
         selectinload(DailySession.user_course)
+        .selectinload(UserCourse.course)
+        .selectinload(Course.items)
     ))
     daily_session = result.scalar_one_or_none()
 
@@ -49,6 +51,7 @@ async def start_session_handler(callback: CallbackQuery, state: FSMContext, sess
         await state.update_data(exercises=exercises)
         await state.update_data(daily_session=daily_session)
         await state.set_state(Session.pulse_before)
+        await callback.message.delete()
         await callback.message.answer(_('session.pulse'))
         return
 
@@ -71,6 +74,7 @@ async def skip_session_handler(callback: CallbackQuery, session: AsyncSession) -
     daily_session = result.scalar_one_or_none()
     if daily_session:
         await finish_session(daily_session, session, skipped=True)
+        await callback.message.delete()
         await callback.message.answer(_('session.skipped'))
         return
 
@@ -146,6 +150,7 @@ async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, s
 
 @router.callback_query(Session.exercise, F.data.startswith("next_"))
 async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.message.delete()
     data = await state.get_data()
     exercises = data.get("exercises", [])
     index = data.get("current_index", 0) + 1
@@ -168,6 +173,7 @@ async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> N
 @router.callback_query(Session.exercise, F.data.startswith("finish_"))
 async def finish_exercises(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(Session.pulse_after)
+    await callback.message.delete()
     await callback.message.answer(_('session.pulse'))
     await callback.answer()
 

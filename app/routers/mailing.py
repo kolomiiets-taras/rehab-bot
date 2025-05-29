@@ -143,6 +143,10 @@ async def delete_mailing(
         await db.delete(user_course)
         await db.commit()
 
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer + '?success=1', status_code=303)
+
     return RedirectResponse(url="/mailing?success=1", status_code=303)
 
 
@@ -158,6 +162,10 @@ async def stop_mailing(
     if user_course:
         user_course.finished = True
         await db.commit()
+
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer + '?success=1', status_code=303)
 
     return RedirectResponse(url="/mailing?success=1", status_code=303)
 
@@ -195,15 +203,18 @@ async def start_mailing(
 
     await db.commit()
 
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer + '?success=1', status_code=303)
+
     return RedirectResponse(url="/mailing?success=1", status_code=303)
 
 
 @router.post("/edit/{mailing_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
-async def add_mailing(
+async def edit_mailing(
     request: Request,
     mailing_id: int,
-    course_id: int = Form(...),
     mailing_time: time = Form(...),
     mailing_days: list[int] = Form(...),
     db: AsyncSession = Depends(get_db)
@@ -212,9 +223,12 @@ async def add_mailing(
     user_course = result.scalar_one_or_none()
 
     if user_course:
-        user_course.course_id = course_id
         user_course.mailing_time = mailing_time
         user_course.mailing_days = ",".join(str(d) for d in sorted(mailing_days))
         await db.commit()
+
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer + '?success=1', status_code=303)
 
     return RedirectResponse(url="/mailing?success=1", status_code=303)

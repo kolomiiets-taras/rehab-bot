@@ -85,6 +85,7 @@ async def delete_exercise(exercise_id: int, db: AsyncSession = Depends(get_db)):
 @router.post("/{exercise_id}/edit")
 @access_for(Role.ADMIN)
 async def edit_exercise(
+    request: Request,
     exercise_id: int,
     background_tasks: BackgroundTasks,
     title: str = Form(...),

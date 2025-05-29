@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.models import Role, Course, CourseItem
 from app.models.user import User, UserCourse
-from sqlalchemy import select, or_, String, func, and_
+from sqlalchemy import select, or_, String, func
 from datetime import datetime, date, timedelta, time
 from .utils import access_for
 from ..constants import WELLBEING_EMOJI_MAP
@@ -82,7 +82,7 @@ async def add_user(
 
 @router.post("/delete/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
-async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if user:
         await db.delete(user)
@@ -123,8 +123,8 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         "labels": [s.date.strftime("%d.%m") for s in sessions],
         "before_name": "Пульс до",
         "after_name": "Пульс після",
-        "pulse_before": [s.pulse_before or 0 for s in sessions],
-        "pulse_after": [s.pulse_after or 0 for s in sessions],
+        "pulse_before": [s.pulse_before for s in sessions if s.pulse_before is not None],
+        "pulse_after": [s.pulse_after for s in sessions if s.pulse_after is not None],
         "units": "уд/хв",
     }
 
@@ -132,8 +132,8 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         "labels": [s.date.strftime("%d.%m") for s in sessions],
         "before_name": "Самопочуття до",
         "after_name": "Самопочуття після",
-        "wellbeing_before": [s.wellbeing_before or 0 for s in sessions],
-        "wellbeing_after": [s.wellbeing_after or 0 for s in sessions],
+        "wellbeing_before": [s.wellbeing_before for s in sessions if s.wellbeing_before is not None],
+        "wellbeing_after": [s.wellbeing_after for s in sessions if s.wellbeing_after is not None],
         "units": "балів",
     }
 
@@ -178,6 +178,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         "user": user,
         "pulse_chart_data": pulse_chart_data,
         "wellbeing_chart_data": wellbeing_chart_data,
+        "mailing": user_course,
         "course": user_course.course if user_course else None,
         "course_days": course_days
     })
@@ -186,6 +187,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
 @router.post("/edit/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
 async def edit_user(
+    request: Request,
     user_id: int,
     first_name: str = Form(...),
     last_name: str = Form(...),

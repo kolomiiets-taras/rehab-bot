@@ -12,32 +12,16 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Курс -->
-                    <div class="form-group">
-                        <label for="course-select">Виберіть Курс</label>
-                        <select id="course-select" name="course_id" class="form-control"
-                                style="width: 100%;">
-                            <option></option>
-                            {% for course in courses %}
-                                <option value="{{ course.id }}"
-                                        {% if course.id == mailing.course_id %}selected{% endif %}>
-                                    {{ course.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
                     <!-- Час -->
                     <div class="form-group">
                         <label for="mailing-time">Час розсилки</label>
+                        {% set current_time = mailing.mailing_time.strftime("%H:%M") if mailing.mailing_time else None %}
                         <select id="mailing-time" name="mailing_time" class="form-control" style="width: 100%;">
                             {% for hour in range(0, 24) %}
                                 {% set time_str1 = "%02d:00"|format(hour) %}
                                 {% set time_str2 = "%02d:30"|format(hour) %}
-                                <option value="{{ time_str1 }}"
-                                        {% if mailing.mailing_time|string == time_str1 %}selected{% endif %}>{{ time_str1 }}</option>
-                                <option value="{{ time_str2 }}"
-                                        {% if mailing.mailing_time|string == time_str2 %}selected{% endif %}>{{ time_str2 }}</option>
+                                <option value="{{ time_str1 }}" {% if current_time == time_str1 %}selected{% endif %}>{{ time_str1 }}</option>
+                                <option value="{{ time_str2 }}" {% if current_time == time_str2 %}selected{% endif %}>{{ time_str2 }}</option>
                             {% endfor %}
                         </select>
                     </div>
