@@ -18,7 +18,7 @@ ITEMS_PER_PAGE = 10
 
 
 @router.get("/")
-@access_for(Role.ADMIN, Role.DOCTOR)
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
 async def users_list(request: Request, db: AsyncSession = Depends(get_db)):
     query = request.query_params.get("q")
     page = int(request.query_params.get("page", 1))
@@ -57,7 +57,7 @@ async def users_list(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/add")
-@access_for(Role.ADMIN, Role.DOCTOR)
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
 async def add_user(
     request: Request,
     telegram_id: int = Form(...),
@@ -91,7 +91,7 @@ async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends
 
 
 @router.get("/{user_id}")
-@access_for(Role.ADMIN, Role.DOCTOR)
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
 async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if not user:
@@ -185,7 +185,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
 
 
 @router.post("/edit/{user_id}")
-@access_for(Role.ADMIN, Role.DOCTOR)
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
 async def edit_user(
     request: Request,
     user_id: int,
@@ -193,14 +193,11 @@ async def edit_user(
     last_name: str = Form(...),
     phone: str = Form(None),
     birthday: date = Form(None),
-    mailing_time: time = Form(None),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user:
-        if mailing_time is not None:
-            user.mailing_time = mailing_time
         user.first_name = first_name
         user.last_name = last_name
         user.phone = phone

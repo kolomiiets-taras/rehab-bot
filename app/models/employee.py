@@ -9,6 +9,7 @@ class Role(IntEnum):
     OWNER = 0
     ADMIN = 1
     DOCTOR = 2
+    MANAGER = 3
 
 
 class Employee(Base):

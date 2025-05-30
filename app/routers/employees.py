@@ -36,7 +36,8 @@ async def employees_list(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("employees.html", {
         "request": request,
         "employees": employees,
-        "query": query
+        "query": query,
+        "roles": [(role.value, role.name) for role in Role]
     })
 
 

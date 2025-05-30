@@ -21,6 +21,7 @@ class User(Base):
     language = Column(String(10), nullable=True, default=app_config.DEFAULT_LANGUAGE)
 
     courses = relationship("UserCourse", back_populates="user", cascade="all, delete-orphan")
+    appointments = relationship("Appointment", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserCourse(Base):
@@ -54,14 +55,6 @@ class UserCourse(Base):
             return ""
         mapping = {'1': 'Пн', '2': 'Вт', '3': 'Ср', '4': 'Чт', '5': 'Пт', '6': 'Сб', '7': 'Нд'}
         return ', '.join([mapping[day] for day in self.mailing_days.split(',') if day in mapping])
-
-
-class Wellbeing(IntEnum):
-    VERY_BAD = 1
-    BAD = 2
-    NEUTRAL = 3
-    GOOD = 4
-    VERY_GOOD = 5
 
 
 class DailySession(Base):

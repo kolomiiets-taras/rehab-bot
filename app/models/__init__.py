@@ -1,3 +1,4 @@
+from .appointment import Appointment, AppointmentStatus
 from .user import User, UserCourse, DailySession
 from .exercise import Exercise
 from .complex import Complex, ComplexExercise

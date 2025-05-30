@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models import Exercise, Complex, User
+from sqlalchemy.orm import selectinload
+
+from app.models import Exercise, Complex, User, Appointment, AppointmentStatus
 from app.db.database import get_db
 
 
@@ -36,3 +38,37 @@ async def get_all_users(db: AsyncSession = Depends(get_db)):
         {"id": user.id, "name": f'{user.last_name} {user.first_name}'}
         for user in users
     ]
+
+
+@router.get("/appointments")
+async def get_pending_appointments(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Appointment)
+        .where(Appointment.status == AppointmentStatus.PENDING)
+        .options(selectinload(Appointment.user))
+        .order_by(Appointment.created_at.desc())
+    )
+    appointments = result.scalars().all()
+    return [
+        {
+            "id": app.id,
+            "user_id": app.user_id,
+            "user_name": f'{app.user.last_name} {app.user.first_name}',
+            "user_phone": app.user.phone,
+            "created_at": app.created_at,
+        }
+        for app in appointments
+    ]
+
+
+@router.post("/appointments/confirm/{appointment_id}/")
+async def confirm_appointment(appointment_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Appointment).where(Appointment.id == appointment_id))
+    appointment = result.scalar_one_or_none()
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    appointment.status = AppointmentStatus.CONFIRMED
+    await db.commit()
+    return {"status": "confirmed"}

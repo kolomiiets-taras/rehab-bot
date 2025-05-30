@@ -23,7 +23,7 @@ from app.db.connector import create_db_and_tables, drop_db_tables, add_first_adm
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
     # await populate_test_data()
-    # await add_first_admin()
+    await add_first_admin()
     yield
     # await drop_db_tables()
 

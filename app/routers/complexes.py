@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.config import app_config
 from app.db.database import get_db
-from app.models import Complex, ComplexExercise, Role
+from app.models import Complex, ComplexExercise, Role, Appointment
 from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
 
