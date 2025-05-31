@@ -110,6 +110,14 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
     if user_course and user_course.progress:
         start_date = user_course.created_at.date()
         progress_bits = user_course.progress.strip()
+        allowed_weekdays = set(user_course.mailing_days)  # Наприклад: {1, 3, 5}
+        calendar_dates = []
+
+        while len(calendar_dates) < len(user_course.progress):
+            if start_date.isoweekday() in allowed_weekdays:
+                calendar_dates.append(start_date)
+            start_date += timedelta(days=1)
+
         for i, bit in enumerate(progress_bits):
             if bit == "0":
                 status = 'not_sent'
@@ -132,7 +140,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
             else:
                 exercise_title = user_course.course.items[i].complex.name
             course_days.append({
-                "date": (start_date + timedelta(days=i)).strftime("%d-%m"),
+                "date": calendar_dates[i].strftime("%d-%m"),
                 "status": status,
                 "current": (i == user_course.current_position),
                 "exercise": exercise_title,
