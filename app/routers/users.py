@@ -8,7 +8,7 @@ from app.db.database import get_db
 from app.models import Role, Course, CourseItem
 from app.models.user import User, UserCourse
 from sqlalchemy import select, or_, String, func
-from datetime import datetime, date, timedelta, time
+from datetime import datetime, date, timedelta
 from .utils import access_for, error_handler
 from ..constants import WELLBEING_EMOJI_MAP
 from ..logger import logger

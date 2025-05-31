@@ -24,10 +24,15 @@
                     {% include "partials/alert.html" %}
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Пацієнти</h1>
-                        <button class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"
-                                data-toggle="modal" data-target="#addPatientModal">
-                            <i class="fas fa-plus fa-sm text-white-50"></i> Додати Пацієнта
-                        </button>
+                        <div>
+                            <button class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"
+                                    data-toggle="modal" data-target="#addPatientModal">
+                                <i class="fas fa-plus fa-sm text-white-50"></i> Додати Пацієнта
+                            </button>
+                            <a href="/api/export/users" class="btn btn-sm btn-info" title="Export to CSV" download>
+                                <i class="fa-solid fa-file-arrow-down"></i>
+                            </a>
+                        </div>
                         <!-- Modal -->
                         {% include "modals/user/add-user-modal.html" %}
                     </div>
