@@ -29,7 +29,7 @@
                             Назад до списку
                         </a>
                     </div>
-                    <form method="post" action="/mailing/add">
+                    <form method="post" action="/mailing/add" id="mailing-form" onsubmit="return validateDaysSelected();">
                     <div class="row">
                         <!-- Левая карточка -->
                         <div class="col-lg-6 mb-4">
@@ -41,7 +41,7 @@
                                     <div class="form-group">
                                         <label for="user-select">Виберіть Пацієнтів</label>
                                         <select id="user-select" name="users" class="form-control" multiple="multiple"
-                                                style="width: 100%;">
+                                                style="width: 100%;" required>
                                             {% for user in users %}
                                                 <option value="{{ user.id }}">{{ user.last_name }} {{ user.first_name }}</option>
                                             {% endfor %}
@@ -121,7 +121,6 @@
                                             {% endfor %}
                                         </div>
                                     </div>
-
                                     <button type="submit" class="btn btn-success mt-3">Створити розсилку</button>
                                 </div>
                             </div>
@@ -140,6 +139,14 @@
     <script src="{{ url_for('static', path='js/add-course-modal.js') }}"></script>
 
     <script>
+        function validateDaysSelected() {
+            const checkboxes = document.querySelectorAll('input[name="mailing_days"]:checked');
+            if (checkboxes.length === 0) {
+                alert("Будь ласка, оберіть хоча б один день для розсилки.");
+                return false;
+            }
+            return true;
+        }
         $(document).ready(function () {
             $('#user-select').select2({
                 placeholder: 'Виберіть пацієнтів…'

@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.models import Exercise, Complex, User, Appointment, AppointmentStatus
+from app.models import Exercise, Complex, User, Appointment, AppointmentStatus, Role
 from app.db.database import get_db
-
+from app.routers.utils import access_for
 
 router = APIRouter(prefix="/api")
 
 
 @router.get("/exercises")
-async def get_all_exercises(db: AsyncSession = Depends(get_db)):
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+async def get_all_exercises(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Exercise))
     exercises = result.scalars().all()
     return [
@@ -21,7 +22,8 @@ async def get_all_exercises(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/complexes")
-async def get_all_complexes(db: AsyncSession = Depends(get_db)):
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+async def get_all_complexes(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Complex))
     complexes = result.scalars().all()
     return [
@@ -31,7 +33,8 @@ async def get_all_complexes(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/users")
-async def get_all_users(db: AsyncSession = Depends(get_db)):
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+async def get_all_users(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User))
     users = result.scalars().all()
     return [
@@ -41,7 +44,8 @@ async def get_all_users(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/appointments")
-async def get_pending_appointments(db: AsyncSession = Depends(get_db)):
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+async def get_pending_appointments(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Appointment)
         .where(Appointment.status == AppointmentStatus.PENDING)
@@ -62,7 +66,8 @@ async def get_pending_appointments(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/appointments/confirm/{appointment_id}/")
-async def confirm_appointment(appointment_id: int, db: AsyncSession = Depends(get_db)):
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+async def confirm_appointment(request: Request, appointment_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Appointment).where(Appointment.id == appointment_id))
     appointment = result.scalar_one_or_none()
 

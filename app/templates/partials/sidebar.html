@@ -63,6 +63,15 @@
         </a>
     </li>
 
+    <hr class="sidebar-divider">
+
+    <li class="nav-item {% if request.url.path.startswith('/motivation') %}active{% endif %}">
+        <a class="nav-link" href="/motivation">
+            <i class="fas fa-fw fa-bolt"></i>
+            <span>Мотивація</span>
+        </a>
+    </li>
+
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 

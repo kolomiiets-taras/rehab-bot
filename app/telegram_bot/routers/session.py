@@ -10,7 +10,7 @@ from app.db.session_wraper import with_session
 from app.models import DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course
 from app.telegram_bot.keyboards.session_keyboards import wellbeing_keyboard
 from app.telegram_bot.middlewares.localization import i18n
-from app.telegram_bot.routers.utils import validate_pulse, finish_session
+from app.telegram_bot.routers.utils import validate_pulse, finish_session, error_logger
 from app.telegram_bot.utils import send_exercise
 
 router = Router(name=__name__)
@@ -26,6 +26,7 @@ class Session(StatesGroup):
 
 
 @router.callback_query(F.data.startswith("start_"))
+@error_logger
 @with_session
 async def start_session_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
     session_id = int(callback.data.split('_')[1])
@@ -59,6 +60,7 @@ async def start_session_handler(callback: CallbackQuery, state: FSMContext, sess
 
 
 @router.callback_query(F.data.startswith("skip_"))
+@error_logger
 @with_session
 async def skip_session_handler(callback: CallbackQuery, session: AsyncSession) -> None:
     session_id = int(callback.data.split('_')[1])
@@ -82,6 +84,7 @@ async def skip_session_handler(callback: CallbackQuery, session: AsyncSession) -
 
 
 @router.message(Session.pulse_before)
+@error_logger
 @with_session
 async def pulse_before_handler(message: Message, state: FSMContext, session: AsyncSession) -> None:
     pulse = message.text
@@ -108,6 +111,7 @@ async def pulse_before_handler(message: Message, state: FSMContext, session: Asy
 
 
 @router.callback_query(Session.wellbeing_before, F.data.startswith("wellbeing_"))
+@error_logger
 @with_session
 async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
     parts = callback.data.split("_")
@@ -149,6 +153,7 @@ async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, s
 
 
 @router.callback_query(Session.exercise, F.data.startswith("next_"))
+@error_logger
 async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.delete()
     data = await state.get_data()
@@ -171,6 +176,7 @@ async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> N
 
 
 @router.callback_query(Session.exercise, F.data.startswith("finish_"))
+@error_logger
 async def finish_exercises(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(Session.pulse_after)
     await callback.message.delete()
@@ -179,6 +185,7 @@ async def finish_exercises(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.message(Session.pulse_after)
+@error_logger
 @with_session
 async def pulse_after_handler(message: Message, state: FSMContext, session: AsyncSession) -> None:
     pulse = message.text
@@ -205,6 +212,7 @@ async def pulse_after_handler(message: Message, state: FSMContext, session: Asyn
 
 
 @router.callback_query(Session.wellbeing_after, F.data.startswith("wellbeing_"))
+@error_logger
 @with_session
 async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
     parts = callback.data.split("_")

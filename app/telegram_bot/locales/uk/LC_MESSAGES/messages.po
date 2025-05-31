@@ -70,6 +70,9 @@ msgstr "📝 Реєстрація"
 msgid "keyboards.appointment"
 msgstr "📅 Записатись на прийом"
 
+msgid "keyboards.support"
+msgstr "⚙️ Технічка підтримка"
+
 # session
 
 msgid "session.pulse"
@@ -101,10 +104,15 @@ msgstr "🔹 <b>{course_title}</b> 🔹\n\n Тренування <b>{session_num
 msgid "error.general"
 msgstr "❌ Виникла помилка. Спробуйте ще раз."
 
-# appintment
+# appointment
 
 msgid "appointment.success"
 msgstr "✅ Менеджер зв'яжеться з вами найближчим часом."
 
 msgid "appointment.already_exists"
 msgstr "ℹ️ Ви вже оформили заявку на запис. Будь ласка очікуйте дзвінка нашого менеджера."
+
+# support
+
+msgid "support.message"
+msgstr "ℹ️ Якщо у вас виникли питання, напишіть нам у службу підтримки {support}"

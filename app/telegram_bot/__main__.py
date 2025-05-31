@@ -4,9 +4,16 @@ import sys
 
 from aiogram import Dispatcher
 
+from app.logger import logger
 from app.telegram_bot.bot import bot
 from app.telegram_bot.middlewares.localization import locale_middleware
-from app.telegram_bot.routers import registration_router, session_router, start_router, appointment_router
+from app.telegram_bot.routers import (
+    registration_router,
+    session_router,
+    start_router,
+    appointment_router,
+    support_router
+)
 
 
 async def main() -> None:
@@ -16,8 +23,10 @@ async def main() -> None:
     dp.include_router(registration_router)
     dp.include_router(session_router)
     dp.include_router(appointment_router)
+    dp.include_router(support_router)
 
     await dp.start_polling(bot)
+    logger.info("Bot started successfully.")
 
 
 if __name__ == "__main__":

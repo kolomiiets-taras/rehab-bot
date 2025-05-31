@@ -1,17 +1,22 @@
 {% if request.query_params.success == '1' %}
-  <div class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="fas fa-fw fa-check"></i>
-    Операція успішна!
-    <button type="button" class="close" data-dismiss="alert" aria-label="Закрити">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-fw fa-check"></i>
+        Операція успішна!
+        <button type="button" class="close" data-dismiss="alert" aria-label="Закрити">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 {% elif request.query_params.error == '1' %}
-  <div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="fas fa-fw fa-exclamation-triangle"></i>
-    Виникла помилка!
-    <button type="button" class="close" data-dismiss="alert" aria-label="Закрити">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-fw fa-exclamation-triangle"></i>
+        Виникла помилка!
+        {% if errors %}
+            {% for error in errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Закрити">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 {% endif %}

@@ -1,6 +1,8 @@
+from functools import wraps
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session_wraper import with_session
+from app.logger import logger
 from app.models import DailySession
 
 
@@ -27,3 +29,19 @@ async def finish_session(daily_session: DailySession, session: AsyncSession, ski
     session.add(daily_session.user_course)
     session.add(daily_session)
     await session.commit()
+    logger.info(
+        f"Session finished for user {daily_session.user_course.user_id} "
+        f"({daily_session.id}), position: {position}, skipped: {skipped}"
+    )
+
+
+def error_logger(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in Telegram Bot {func.__name__}: {e}")
+            raise e
+    return wrapper
+

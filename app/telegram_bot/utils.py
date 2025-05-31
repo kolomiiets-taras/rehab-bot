@@ -1,3 +1,4 @@
+from app.logger import logger
 from app.telegram_bot.bot import bot
 from aiogram.utils.markdown import html_decoration as hd
 from app.config import app_config
@@ -45,4 +46,5 @@ async def send_session(
         parse_mode="HTML",
         reply_markup=skip_start_keyboard(session_id=session_id, locale=locale)
     )
+    logger.info(f"Session started for user tg_id: {chat_id}. Session ID: {session_id}, Course: {course_title}")
     await bot.session.close()

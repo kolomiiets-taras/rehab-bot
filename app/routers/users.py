@@ -9,8 +9,9 @@ from app.models import Role, Course, CourseItem
 from app.models.user import User, UserCourse
 from sqlalchemy import select, or_, String, func
 from datetime import datetime, date, timedelta, time
-from .utils import access_for
+from .utils import access_for, error_handler
 from ..constants import WELLBEING_EMOJI_MAP
+from ..logger import logger
 
 router = APIRouter(prefix="/users")
 templates = app_config.TEMPLATES
@@ -45,7 +46,7 @@ async def users_list(request: Request, db: AsyncSession = Depends(get_db)):
     users = result.scalars().all()
 
     return templates.TemplateResponse(
-        "users.html",
+        "user/users.html",
         {
             "request": request,
             "users": users,
@@ -56,45 +57,13 @@ async def users_list(request: Request, db: AsyncSession = Depends(get_db)):
     )
 
 
-@router.post("/add")
-@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
-async def add_user(
-    request: Request,
-    telegram_id: int = Form(...),
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    phone: str = Form(None),
-    birthday: date = Form(None),
-    db: AsyncSession = Depends(get_db),
-):
-    user = User(
-        telegram_id=telegram_id,
-        first_name=first_name,
-        last_name=last_name,
-        phone=phone,
-        birthday=birthday,
-        created_at=datetime.now()
-    )
-    db.add(user)
-    await db.commit()
-    return RedirectResponse(url="/users?success=1", status_code=303)
-
-
-@router.post("/delete/{user_id}")
-@access_for(Role.ADMIN, Role.DOCTOR)
-async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
-    user = await db.get(User, user_id)
-    if user:
-        await db.delete(user)
-        await db.commit()
-    return RedirectResponse(url="/users?success=1", status_code=303)
-
-
 @router.get("/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+@error_handler('users')
 async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if not user:
+        logger.error(f"User not found: {user_id}")
         return RedirectResponse(url="/users?error=1", status_code=303)
 
     course_result = await db.execute(
@@ -173,7 +142,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
                 "wellbeing_after": WELLBEING_EMOJI_MAP.get(wellbeing_after, '-'),
             })
 
-    return templates.TemplateResponse("user-detail.html", {
+    return templates.TemplateResponse("user/user-detail.html", {
         "request": request,
         "user": user,
         "pulse_chart_data": pulse_chart_data,
@@ -184,8 +153,49 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
     })
 
 
+@router.post("/add")
+@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+@error_handler('users')
+async def add_user(
+    request: Request,
+    telegram_id: int = Form(...),
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    phone: str = Form(None),
+    birthday: date = Form(None),
+    db: AsyncSession = Depends(get_db),
+):
+    user = User(
+        telegram_id=telegram_id,
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone,
+        birthday=birthday,
+        created_at=datetime.now()
+    )
+    db.add(user)
+    await db.commit()
+    logger.info(f"Added new user: {user.telegram_id} - {user.first_name} {user.last_name}")
+    return RedirectResponse(url="/users?success=1", status_code=303)
+
+
+@router.post("/delete/{user_id}")
+@access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('users')
+async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
+    user = await db.get(User, user_id)
+    if user:
+        await db.delete(user)
+        await db.commit()
+        logger.info(f"Deleted user: {user.telegram_id} - {user.first_name} {user.last_name}")
+        return RedirectResponse(url="/users?success=1", status_code=303)
+    logger.error(f"User not found for delete: {user_id}")
+    return RedirectResponse(url="/users?error=1", status_code=303)
+
+
 @router.post("/edit/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+@error_handler('users')
 async def edit_user(
     request: Request,
     user_id: int,
@@ -203,4 +213,7 @@ async def edit_user(
         user.phone = phone
         user.birthday = birthday
         await db.commit()
-    return RedirectResponse(url=f"/users/{user_id}?edited=1", status_code=303)
+        logger.info(f"Edited user: {user.telegram_id} - {user.first_name} {user.last_name}")
+        return RedirectResponse(url=f"/users/{user_id}?success=1", status_code=303)
+    logger.error(f"User not found for edit: {user_id}")
+    return RedirectResponse(url="/users?error=1", status_code=303)

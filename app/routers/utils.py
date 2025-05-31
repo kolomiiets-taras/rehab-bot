@@ -1,17 +1,16 @@
 import uuid
-from datetime import time
-
 from fastapi import Request, HTTPException
-from functools import wraps
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 
 from app.config import app_config
 from app.db import async_session
+from app.logger import logger
 from app.models import Exercise
 from app.models.employee import Role
 import subprocess
 from pathlib import Path
+from functools import wraps
 
 
 def access_for(*allowed_roles):
@@ -59,7 +58,7 @@ async def save_exercise_media(filename: str, content: bytes, exercise_id: int):
         try:
             file_path = convert_to_mp4(file_path)
         except Exception as e:
-            print(f"⚠️ Ошибка конвертации: {e}")
+            logger.error(f"⚠️ Media convert error (exercise ID {exercise_id}): {e}")
 
     # Обновляем имя файла в базе
     async with async_session() as session:
@@ -67,4 +66,18 @@ async def save_exercise_media(filename: str, content: bytes, exercise_id: int):
         exercise = result.scalar_one_or_none()
         if exercise:
             exercise.media = file_path.name
+            logger.info(f"Media saved for exercise ID {exercise_id}: {file_path.name}")
             await session.commit()
+
+
+def error_handler(path: str):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await func(*args, **kwargs)
+            except Exception as e:
+                logger.error(f"Error in {path}: {e}")
+                return RedirectResponse(url=f"/{path}?error=1", status_code=303)
+        return wrapper
+    return decorator

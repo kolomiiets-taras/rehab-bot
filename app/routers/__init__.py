@@ -7,3 +7,4 @@ from .complexes import router as complexes_router
 from .courses import router as courses_router
 from .mailing import router as mailing_router
 from .index import router as index_router
+from .motivation import router as motivation_router

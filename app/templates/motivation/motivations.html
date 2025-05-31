@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Пацієнти{% endblock %}
+{% block title %}Мотиваційні повідомлення{% endblock %}
 
 {% set body_class = "page-to" %}
 {% block content %}
@@ -23,15 +23,13 @@
                 <div class="container-fluid">
                     {% include "partials/alert.html" %}
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Пацієнти</h1>
-                        <button class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"
-                                data-toggle="modal" data-target="#addPatientModal">
-                            <i class="fas fa-plus fa-sm text-white-50"></i> Додати Пацієнта
+                        <h1 class="h3 mb-0 text-gray-800">Мотиваційні повідомлення</h1>
+                        <button class="btn btn-sm btn-success shadow-sm" data-toggle="modal"
+                                data-target="#addMotivationModal">
+                            <i class="fas fa-plus fa-sm text-white-50"></i> Створити Повідомлення
                         </button>
-                        <!-- Modal -->
-                        {% include "modals/add-user-modal.html" %}
+                        {% include "modals/motivation/add-motivation-modal.html" %}
                     </div>
-
                     <div class="card shadow mb-4">
                         <div class="card-body">
                             <div class="table-responsive">
@@ -39,31 +37,28 @@
                                     <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Ім’я</th>
-                                        <th>Прізвище</th>
-                                        <th>Телефон</th>
-                                        <th>Telegram ID</th>
+                                        <th>Повідомлення</th>
                                         <th>Дія</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {% for user in users %}
+                                    {% for message in messages %}
                                         <tr>
-                                            <td>{{ user.id }}</td>
-                                            <td>{{ user.first_name }}</td>
-                                            <td>{{ user.last_name }}</td>
-                                            <td>{{ user.phone or '' }}</td>
-                                            <td>{{ user.telegram_id }}</td>
+                                            <td>{{ message.id }}</td>
+                                            <td>{{ message.message }}</td>
                                             <td>
-                                                <a href="/users/{{ user.id }}"
-                                                   class="btn btn-sm btn-info">Переглянути</a>
+                                                <button class="btn btn-sm btn-info" data-toggle="modal"
+                                                        data-target="#editMotivationModal{{ message.id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
                                                 <button class="btn btn-sm btn-danger" data-toggle="modal"
-                                                        data-target="#deleteModal{{ user.id }}">
+                                                        data-target="#deleteMotivationModal{{ message.id }}">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </td>
                                         </tr>
-                                        {% include "modals/delete-user-modal.html" %}
+                                        {% include "modals/motivation/delete-motivation-modal.html" %}
+                                        {% include "modals/motivation/edit-motivation-modal.html" %}
                                     {% endfor %}
                                     </tbody>
                                 </table>

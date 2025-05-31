@@ -29,7 +29,7 @@
                             <i class="fas fa-plus fa-sm text-white-50"></i> Додати Співробітника
                         </button>
                         <!-- Modal -->
-                        {% include "modals/add-employee-modal.html" %}
+                        {% include "modals/employee/add-employee-modal.html" %}
                     </div>
 
                     <div class="card shadow mb-4">
@@ -65,8 +65,8 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                        {% include "modals/edit-employee-modal.html" %}
-                                        {% include "modals/delete-employee-modal.html" %}
+                                        {% include "modals/employee/edit-employee-modal.html" %}
+                                        {% include "modals/employee/delete-employee-modal.html" %}
                                     {% endfor %}
                                     </tbody>
                                 </table>

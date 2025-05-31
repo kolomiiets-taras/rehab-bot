@@ -6,22 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session_wraper import with_session
 from app.models import User
-from app.telegram_bot.keyboards.main_menu import main_menu_registration_keyboard, main_menu_appointment_keyboard
+from app.telegram_bot.keyboards.main_menu import main_menu_registration_keyboard, main_menu_keyboard
 from app.telegram_bot.middlewares.localization import i18n
-
+from app.telegram_bot.routers.utils import error_logger
 
 router = Router(name=__name__)
 _ = i18n.gettext
 
 
 @router.message(CommandStart())
+@error_logger
 @with_session
 async def start_handler(message: Message, session: AsyncSession) -> None:
     result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
     user = result.scalar_one_or_none()
     if user:
         await message.answer(
-            _('start.welcome'), reply_markup=main_menu_appointment_keyboard(), parse_mode='HTML'
+            _('start.welcome'), reply_markup=main_menu_keyboard(), parse_mode='HTML'
         )
         return
 

@@ -9,7 +9,8 @@ from sqlalchemy import select
 from app.config import app_config
 from app.db.database import get_db
 from app.models.employee import Employee, Role
-from .utils import access_for
+from .utils import access_for, error_handler
+from ..logger import logger
 
 router = APIRouter(prefix="/employees")
 templates = app_config.TEMPLATES
@@ -33,7 +34,7 @@ async def employees_list(request: Request, db: AsyncSession = Depends(get_db)):
     employees = result.scalars().all()
     for emp in employees:
         emp.role_name = Role(emp.role).name
-    return templates.TemplateResponse("employees.html", {
+    return templates.TemplateResponse("employee/employees.html", {
         "request": request,
         "employees": employees,
         "query": query,
@@ -41,8 +42,9 @@ async def employees_list(request: Request, db: AsyncSession = Depends(get_db)):
     })
 
 
-@router.post("/{employee_id}/edit")
+@router.post("edit/{employee_id}")
 @access_for(Role.ADMIN)
+@error_handler('employees')
 async def edit_employee(
     employee_id: int,
     first_name: str = Form(...),
@@ -61,21 +63,31 @@ async def edit_employee(
         employee.role = role
         employee.phone = phone
         await db.commit()
-    return RedirectResponse(url="/employees?success=1", status_code=303)
+        logger.info(f"Updated employee: {employee.email} - {employee.first_name} {employee.last_name}")
+        return RedirectResponse(url="/employees?success=1", status_code=303)
+
+    logger.error(f"Employee not found for edit: {employee_id}")
+    return RedirectResponse(url="/employees?error=1", status_code=303)
 
 
 @router.post("/delete/{employee_id}")
 @access_for()
+@error_handler('employees')
 async def delete_employee(employee_id: int, db: AsyncSession = Depends(get_db)):
     employee = await db.get(Employee, employee_id)
     if employee:
         await db.delete(employee)
         await db.commit()
-    return RedirectResponse(url="/employees?success=1", status_code=303)
+        logger.info(f"Deleted employee: {employee.email} - {employee.first_name} {employee.last_name}")
+        return RedirectResponse(url="/employees?success=1", status_code=303)
+
+    logger.error(f"Employee not found for delete: {employee_id}")
+    return RedirectResponse(url="/employees?error=1", status_code=303)
 
 
 @router.post("/add")
 @access_for()
+@error_handler('employees')
 async def add_employee(
     first_name: str = Form(...),
     last_name: str = Form(...),
@@ -97,4 +109,6 @@ async def add_employee(
     )
     db.add(new_employee)
     await db.commit()
+
+    logger.info(f"Added new employee: {new_employee.email} - {new_employee.first_name} {new_employee.last_name}")
     return RedirectResponse(url="/employees?success=1", status_code=303)

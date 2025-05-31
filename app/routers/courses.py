@@ -7,14 +7,17 @@ import json
 
 from app.config import app_config
 from app.db.database import get_db
+from app.logger import logger
 from app.models.course import Course
-from app.models import CourseItem
+from app.models import CourseItem, Role
+from app.routers.utils import error_handler, access_for
 
 router = APIRouter(prefix="/courses")
 templates = app_config.TEMPLATES
 
 
 @router.get("/")
+@access_for(Role.ADMIN, Role.DOCTOR)
 async def list_courses(request: Request, db: AsyncSession = Depends(get_db)):
     stmt = (
         select(Course)
@@ -28,35 +31,13 @@ async def list_courses(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(stmt)
     courses = result.scalars().all()
     return templates.TemplateResponse(
-        "courses.html",
+        "course/courses.html",
         {"request": request, "courses": courses},
     )
 
 
-@router.post("/add")
-async def add_course(
-    request: Request,
-    name: str = Form(...),
-    items_json: str = Form(None),
-    db: AsyncSession = Depends(get_db),
-):
-    items = json.loads(items_json or "[]")
-
-    if items:
-        course = Course(name=name)
-        db.add(course)
-        await db.flush()  # присвоит course.id
-
-        # добавляем упражнения
-        for itm in items:
-            kwarg = {f'{itm["type"]}_id': itm["id"]}
-            db.add(CourseItem(**kwarg, course_id=course.id, position=int(itm['position'])))
-
-        await db.commit()
-    return RedirectResponse(url="/courses?success=1", status_code=303)
-
-
 @router.get("/{course_id}")
+@access_for(Role.ADMIN, Role.DOCTOR)
 async def course_detail(request: Request, course_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Course)
@@ -70,7 +51,8 @@ async def course_detail(request: Request, course_id: int, db: AsyncSession = Dep
     )
     course = result.scalar_one_or_none()
     if not course:
-        raise HTTPException(404, "Курс не знайдений")
+        logger.error(f"Course not found: {course_id}")
+        return RedirectResponse(url="/courses?error=1", status_code=303)
 
     # pre-build your JSON-serializable list in Python
     items_list = []
@@ -90,14 +72,43 @@ async def course_detail(request: Request, course_id: int, db: AsyncSession = Dep
                 "position": ci.position,
             })
 
-    return templates.TemplateResponse("course-detail.html", {
+    return templates.TemplateResponse("course/course-detail.html", {
         "request": request,
         "course": course,
         "items_list": items_list,
     })
 
 
+@router.post("/add")
+@access_for(Role.ADMIN)
+@error_handler('courses')
+async def add_course(
+    request: Request,
+    name: str = Form(...),
+    items_json: str = Form(None),
+    db: AsyncSession = Depends(get_db),
+):
+    items = json.loads(items_json or "[]")
+
+    if items:
+        course = Course(name=name)
+        db.add(course)
+        await db.flush()  # присвоит course.id
+
+        # добавляем упражнения
+        for itm in items:
+            kwarg = {f'{itm["type"]}_id': itm["id"]}
+            db.add(CourseItem(**kwarg, course_id=course.id, position=int(itm['position'])))
+
+        await db.commit()
+        logger.info(f"Added new course: {course.name} (ID: {course.id})")
+
+    return RedirectResponse(url="/courses?success=1", status_code=303)
+
+
 @router.post("/edit/{course_id}")
+@access_for(Role.ADMIN)
+@error_handler('courses')
 async def edit_course(
     request: Request,
     course_id: int,
@@ -108,7 +119,8 @@ async def edit_course(
     result = await db.execute(select(Course).where(Course.id == course_id))
     course = result.scalar_one_or_none()
     if not course:
-        raise HTTPException(404, "Курс не знайдений")
+        logger.error(f"Course not found for edit: {course_id}")
+        return RedirectResponse(url="/courses?error=1", status_code=303)
 
     course.name = name
     # удаляем старые связи
@@ -122,14 +134,21 @@ async def edit_course(
         db.add(CourseItem(**kwarg, course_id=course.id, position=int(itm['position'])))
 
     await db.commit()
+    logger.info(f"Updated course: {course.name} (ID: {course.id})")
     return RedirectResponse(url=f"/courses/{course_id}?success=1", status_code=303)
 
 
 @router.post("/delete/{course_id}")
+@access_for(Role.ADMIN)
+@error_handler('courses')
 async def delete_course(course_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Course).where(Course.id == course_id))
     course = result.scalar_one_or_none()
     if course:
         await db.delete(course)
         await db.commit()
-    return RedirectResponse(url="/courses?success=1", status_code=303)
+        logger.info(f"Deleted course: {course.name} (ID: {course.id})")
+        return RedirectResponse(url="/courses?success=1", status_code=303)
+
+    logger.error(f"Course not found for delete: {course_id}")
+    return RedirectResponse(url="/courses?error=1", status_code=303)

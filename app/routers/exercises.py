@@ -10,7 +10,7 @@ from app.models import Role
 from app.models.exercise import Exercise
 from fastapi.background import BackgroundTasks
 
-from app.routers.utils import save_exercise_media, access_for
+from app.routers.utils import save_exercise_media, access_for, error_handler
 
 router = APIRouter(prefix="/exercises")
 templates = app_config.TEMPLATES
@@ -35,7 +35,7 @@ async def exercises_list(request: Request, db: AsyncSession = Depends(get_db)):
     exercises = exercises_result.scalars().all()
 
     return templates.TemplateResponse(
-        "exercises.html", {
+        "exercise/exercises.html", {
             "request": request,
             "exercises": exercises,
             "query": query
@@ -43,8 +43,31 @@ async def exercises_list(request: Request, db: AsyncSession = Depends(get_db)):
     )
 
 
+@router.get("/{exercise_id}")
+@error_handler('exercises')
+@access_for(Role.ADMIN, Role.DOCTOR)
+async def exercise_detail(
+    request: Request,
+    exercise_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
+    exercise = result.scalar_one_or_none()
+    if not exercise:
+        logger.error(f"Exercise with id {exercise_id} not found")
+        return RedirectResponse(url="/exercises?error=1", status_code=303)
+
+    return templates.TemplateResponse(
+        "exercise/exercise-detail.html", {
+            "request": request,
+            "exercise": exercise,
+        }
+    )
+
+
 @router.post("/add")
 @access_for(Role.ADMIN)
+@error_handler('exercises')
 async def add_exercise(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -59,11 +82,14 @@ async def add_exercise(
 
     file_content = await media.read()
     background_tasks.add_task(save_exercise_media, media.filename, file_content, exercise.id)
+
+    logger.info(f"Added new exercise: {exercise.id} - {exercise.title}")
     return RedirectResponse(url=f"/exercises/{exercise.id}?success=1", status_code=303)
 
 
 @router.post("/delete/{exercise_id}")
 @access_for(Role.ADMIN)
+@error_handler('exercises')
 async def delete_exercise(exercise_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
@@ -74,16 +100,18 @@ async def delete_exercise(exercise_id: int, db: AsyncSession = Depends(get_db)):
             if media_path.exists():
                 media_path.unlink()
         except Exception as e:
-            logger.debug(f"⚠ Не вдалося видалити файл: {e}")
+            logger.error(f"Can't delete file: {e}")
 
         await db.delete(exercise)
         await db.commit()
+        logger.info(f"Deleted exercise: {exercise.id} - {exercise.title}")
 
     return RedirectResponse(url="/exercises?success=1", status_code=303)
 
 
-@router.post("/{exercise_id}/edit")
+@router.post("edit/{exercise_id}")
 @access_for(Role.ADMIN)
+@error_handler('exercises')
 async def edit_exercise(
     request: Request,
     exercise_id: int,
@@ -97,7 +125,8 @@ async def edit_exercise(
     exercise = result.scalar_one_or_none()
 
     if not exercise:
-        raise HTTPException(status_code=404, detail="Exercise not found")
+        logger.error(f"Exercise with id {exercise_id} not found")
+        return RedirectResponse(url="/exercises?error=1", status_code=303)
 
     exercise.title = title
     exercise.text = text
@@ -116,24 +145,5 @@ async def edit_exercise(
             )
 
     await db.commit()
+    logger.info(f"Edited exercise: {exercise.id} - {exercise.title}")
     return RedirectResponse(url=f"/exercises/{exercise_id}?success=1", status_code=303)
-
-
-@router.get("/{exercise_id}")
-@access_for(Role.ADMIN, Role.DOCTOR)
-async def exercise_detail(
-    request: Request,
-    exercise_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
-    exercise = result.scalar_one_or_none()
-    if not exercise:
-        return RedirectResponse(url="/exercises?error=1", status_code=303)
-
-    return templates.TemplateResponse(
-        "exercise-detail.html", {
-            "request": request,
-            "exercise": exercise,
-        }
-    )

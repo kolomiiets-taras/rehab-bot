@@ -35,6 +35,8 @@ class Config:
     SUPPORTED_LANGUAGES = ['uk']
     DEFAULT_LANGUAGE = 'uk'
 
+    SUPPORT_TAG: Final[str] = '@spinatop'
+
     def __init__(self):
         if not self.MEDIA_PATH.exists():
             self.MEDIA_PATH.mkdir(parents=True, exist_ok=True)

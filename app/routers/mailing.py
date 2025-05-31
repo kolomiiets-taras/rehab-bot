@@ -10,7 +10,8 @@ from app.db.database import get_db
 from app.models.user import UserCourse, User
 from sqlalchemy import select, not_, exists
 from datetime import time
-from .utils import access_for
+from .utils import access_for, error_handler
+from ..logger import logger
 from ..models import Course, CourseItem, Role
 
 router = APIRouter(prefix="/mailing")
@@ -32,7 +33,7 @@ async def mailings_list(request: Request, db: AsyncSession = Depends(get_db)):
     courses = course_result.scalars().all()
 
     return templates.TemplateResponse(
-        "mailing.html",
+        "mailing/mailing.html",
         {
             "request": request,
             "mailings": mailings,
@@ -43,6 +44,7 @@ async def mailings_list(request: Request, db: AsyncSession = Depends(get_db)):
 
 @router.get("/add")
 @access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('mailing')
 async def create_mailing_page(request: Request, db: AsyncSession = Depends(get_db)):
     users_result = await db.execute(
         select(User).where(
@@ -60,7 +62,7 @@ async def create_mailing_page(request: Request, db: AsyncSession = Depends(get_d
     courses = course_result.scalars().all()
 
     return templates.TemplateResponse(
-        "mailing-add.html", {
+        "mailing/mailing-add.html", {
             "request": request,
             "users": users,
             "courses": courses
@@ -70,6 +72,7 @@ async def create_mailing_page(request: Request, db: AsyncSession = Depends(get_d
 
 @router.post("/add")
 @access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('mailing')
 async def add_mailing(
     request: Request,
     users: list[int] = Form(...),
@@ -126,12 +129,13 @@ async def add_mailing(
         )
         db.add(user_course)
     await db.commit()
-
+    logger.info(f"Added new mailing for users: {users} with course {course_id}")
     return RedirectResponse(url=f"/mailing?success=1", status_code=303)
 
 
 @router.post("/delete/{mailing_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('mailing')
 async def delete_mailing(
     request: Request,
     mailing_id: int,
@@ -142,16 +146,19 @@ async def delete_mailing(
     if user_course:
         await db.delete(user_course)
         await db.commit()
+        logger.info(f"Deleted mailing ID {mailing_id}")
 
-    referer = request.headers.get("referer")
-    if referer:
-        return RedirectResponse(url=referer + '?success=1', status_code=303)
+        referer = request.headers.get("referer")
+        url = referer + '?success=1' if referer else "/mailing?success=1"
+        return RedirectResponse(url=url, status_code=303)
 
-    return RedirectResponse(url="/mailing?success=1", status_code=303)
+    logger.error(f"Mailing not found for delete ID {mailing_id}")
+    return RedirectResponse(url="/mailing?error=1", status_code=303)
 
 
 @router.post("/stop/{mailing_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('mailing')
 async def stop_mailing(
     request: Request,
     mailing_id: int,
@@ -162,16 +169,19 @@ async def stop_mailing(
     if user_course:
         user_course.finished = True
         await db.commit()
+        logger.info(f"Stopped mailing ID {mailing_id}")
 
-    referer = request.headers.get("referer")
-    if referer:
-        return RedirectResponse(url=referer + '?success=1', status_code=303)
+        referer = request.headers.get("referer")
+        url = referer + '?success=1' if referer else "/mailing?success=1"
+        return RedirectResponse(url=url, status_code=303)
 
-    return RedirectResponse(url="/mailing?success=1", status_code=303)
+    logger.error(f"Mailing not found for stop ID {mailing_id}")
+    return RedirectResponse(url="/mailing?error=1", status_code=303)
 
 
 @router.post("/start/{mailing_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('mailing')
 async def start_mailing(
     request: Request,
     mailing_id: int,
@@ -180,38 +190,42 @@ async def start_mailing(
     # 1. Найти рассылку по ID
     result = await db.execute(select(UserCourse).where(UserCourse.id == mailing_id))
     user_course = result.scalar_one_or_none()
+    if user_course:
+        user_id = user_course.user_id
 
-    user_id = user_course.user_id
-
-    # 2. Завершить все другие активные рассылки этого пользователя
-    update_stmt = (
-        select(UserCourse)
-        .where(
-            UserCourse.user_id == user_id,
-            UserCourse.id != mailing_id,
-            UserCourse.finished == False
+        # 2. Завершить все другие активные рассылки этого пользователя
+        update_stmt = (
+            select(UserCourse)
+            .where(
+                UserCourse.user_id == user_id,
+                UserCourse.id != mailing_id,
+                UserCourse.finished == False
+            )
         )
-    )
-    result = await db.execute(update_stmt)
-    other_active_courses = result.scalars().all()
+        result = await db.execute(update_stmt)
+        other_active_courses = result.scalars().all()
 
-    for course in other_active_courses:
-        course.finished = True
+        for course in other_active_courses:
+            course.finished = True
+            logger.error(f"Mailing ID {mailing_id} finished")
 
-    # 3. Активировать выбранную
-    user_course.finished = False
+        # 3. Активировать выбранную
+        user_course.finished = False
 
-    await db.commit()
+        await db.commit()
+        logger.info(f"Started mailing ID {mailing_id}")
 
-    referer = request.headers.get("referer")
-    if referer:
-        return RedirectResponse(url=referer + '?success=1', status_code=303)
+        referer = request.headers.get("referer")
+        url = referer + '?success=1' if referer else "/mailing?success=1"
+        return RedirectResponse(url=url, status_code=303)
 
+    logger.error(f"Mailing not found for start ID {mailing_id}")
     return RedirectResponse(url="/mailing?success=1", status_code=303)
 
 
 @router.post("/edit/{mailing_id}")
 @access_for(Role.ADMIN, Role.DOCTOR)
+@error_handler('mailing')
 async def edit_mailing(
     request: Request,
     mailing_id: int,
@@ -226,9 +240,11 @@ async def edit_mailing(
         user_course.mailing_time = mailing_time
         user_course.mailing_days = ",".join(str(d) for d in sorted(mailing_days))
         await db.commit()
+        logger.info(f"Edited mailing ID {mailing_id}")
 
-    referer = request.headers.get("referer")
-    if referer:
-        return RedirectResponse(url=referer + '?success=1', status_code=303)
+        referer = request.headers.get("referer")
+        url = referer + '?success=1' if referer else "/mailing?success=1"
+        return RedirectResponse(url=url, status_code=303)
 
-    return RedirectResponse(url="/mailing?success=1", status_code=303)
+    logger.error(f"Mailing not found for edit ID {mailing_id}")
+    return RedirectResponse(url="/mailing?error=1", status_code=303)

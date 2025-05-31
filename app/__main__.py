@@ -14,7 +14,8 @@ from app.routers import (
     complexes_router,
     courses_router,
     mailing_router,
-    index_router
+    index_router,
+    motivation_router
 )
 from app.db.connector import create_db_and_tables, drop_db_tables, add_first_admin
 
@@ -23,7 +24,7 @@ from app.db.connector import create_db_and_tables, drop_db_tables, add_first_adm
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
     # await populate_test_data()
-    await add_first_admin()
+    # await add_first_admin()
     yield
     # await drop_db_tables()
 
@@ -36,15 +37,15 @@ app.middleware("http")(log_middleware)
 app.middleware("http")(auth_middleware)
 
 app.include_router(login_router, tags=["login"])
+app.include_router(index_router, tags=["index"])
+app.include_router(api_router, tags=["api"])
 app.include_router(users_router, tags=["users"])
 app.include_router(employees_router, tags=["employees"])
 app.include_router(exercises_router, tags=["exercises"])
 app.include_router(complexes_router, tags=["complexes"])
-app.include_router(api_router, tags=["api"])
 app.include_router(courses_router, tags=["courses"])
 app.include_router(mailing_router, tags=["mailing"])
-app.include_router(index_router, tags=["index"])
-
+app.include_router(motivation_router, tags=["motivation"])
 
 if __name__ == "__main__":
     import uvicorn

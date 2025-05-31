@@ -1,0 +1,24 @@
+<!-- Modal -->
+<div class="modal fade" id="deleteMotivationModal{{ message.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteMotivationModalLabel{{ message.id }}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form method="post" action="/motivation/delete/{{ message.id }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Підтвердження видалення</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Закрити">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Ви точно хочете видалити повідомлення <strong>{{ message.id }}</strong>?
+            <br>
+            <strong>{{ message.message }}</strong>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+          <button type="submit" class="btn btn-danger">Видалити</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
