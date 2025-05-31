@@ -1,3 +1,5 @@
+import random
+
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -7,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.session_wraper import with_session
-from app.models import DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course
+from app.logger import logger
+from app.models import DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course, DailySessionState, \
+    MotivationMessage
 from app.telegram_bot.keyboards.session_keyboards import wellbeing_keyboard, yes_no_keyboard
 from app.telegram_bot.middlewares.localization import i18n
 from app.telegram_bot.routers.utils import validate_pulse, finish_session, error_logger
@@ -44,6 +48,7 @@ async def start_session_handler(callback: CallbackQuery, state: FSMContext, sess
     daily_session = result.scalar_one_or_none()
 
     if daily_session:
+        daily_session.state = DailySessionState.IN_PROGRESS
         item = daily_session.course_item
         exercises = []
         if item.is_exercise:
@@ -54,6 +59,8 @@ async def start_session_handler(callback: CallbackQuery, state: FSMContext, sess
         await state.update_data(daily_session=daily_session)
         await state.set_state(Session.pulse_before)
         await callback.message.delete()
+        session.add(daily_session)
+        await session.commit()
         await callback.message.answer(_('session.pulse'))
         return
 
@@ -160,7 +167,8 @@ async def wellbeing_before_handler(callback: CallbackQuery, state: FSMContext, s
 
 @router.callback_query(Session.exercise, F.data.startswith("next_"))
 @error_logger
-async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> None:
+@with_session
+async def next_exercise_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
     await callback.message.delete()
     data = await state.get_data()
     exercises = data.get("exercises", [])
@@ -169,6 +177,15 @@ async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> N
     await state.update_data(current_index=index)
     exercise = exercises[index]
     last = index == len(exercises) - 1
+
+    motivation_result = await session.execute(select(MotivationMessage))
+    motivation_messages = motivation_result.scalars().all()
+    if motivation_messages:
+        motivation_message = random.choice(motivation_messages)
+        message = await callback.message.answer(motivation_message.message)
+        motivation = data.get("motivation", [])
+        motivation.append(message)
+        await state.update_data(motivation=motivation)
 
     await send_exercise(
         callback.message,
@@ -184,6 +201,10 @@ async def next_exercise_handler(callback: CallbackQuery, state: FSMContext) -> N
 @router.callback_query(Session.exercise, F.data.startswith("finish_"))
 @error_logger
 async def finish_exercises(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    for msg in data.get("motivation", []):
+        await msg.delete()
+
     await state.set_state(Session.pulse_after)
     await callback.message.delete()
     await callback.message.answer(_('session.pulse'))

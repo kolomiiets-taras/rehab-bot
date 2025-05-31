@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import IntEnum
 
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Boolean, Text, Time, BigInteger
 from sqlalchemy.orm import relationship
@@ -56,12 +57,21 @@ class UserCourse(Base):
         return ', '.join([mapping[day] for day in self.mailing_days.split(',') if day in mapping])
 
 
+class DailySessionState(IntEnum):
+    NOT_SENT = 0
+    SENT = 1
+    IN_PROGRESS = 2
+    FINISHED = 3
+    SKIPPED = 4
+
+
 class DailySession(Base):
     __tablename__ = "daily_session"
 
     id = Column(Integer, primary_key=True, index=True)
     user_course_id = Column(Integer, ForeignKey("user_course.id", ondelete="CASCADE"), nullable=False)
     course_item_id = Column(Integer, ForeignKey("course_item.id", ondelete="CASCADE"), nullable=False)
+    state = Column(Integer, nullable=False, default=DailySessionState.NOT_SENT)
     date = Column(Date, nullable=False)
     position = Column(Integer, nullable=False, default=0)
     pulse_before = Column(Integer, nullable=True)

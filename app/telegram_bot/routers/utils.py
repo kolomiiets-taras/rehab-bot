@@ -3,7 +3,7 @@ from functools import wraps
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.logger import logger
-from app.models import DailySession
+from app.models import DailySession, DailySessionState
 
 
 def validate_pulse(pulse: str) -> bool:
@@ -22,6 +22,7 @@ async def finish_session(daily_session: DailySession, session: AsyncSession, ski
     state = '2' if skipped else '1'
 
     daily_session.user_course.progress = progress[:position] + state + progress[position + 1:]
+    daily_session.state = DailySessionState.SKIPPED if skipped else DailySessionState.FINISHED
 
     daily_session.user_course.current_position += 1
     if daily_session.user_course.current_position == len(daily_session.user_course.course.items):

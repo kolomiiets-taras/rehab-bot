@@ -1,12 +1,11 @@
-import asyncio
-from datetime import datetime, date
+from datetime import date
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.session_wraper import with_session
-from app.models import UserCourse, Course, CourseItem, DailySession
+from app.models import UserCourse, Course, CourseItem, DailySession, DailySessionState
 from app.telegram_bot.utils import send_session
 
 
@@ -32,7 +31,8 @@ async def send_mailing(session: AsyncSession) -> None:
             user_course_id=user_course.id,
             course_item_id=current_item.id,
             date=date.today(),
-            position=user_course.current_position
+            position=user_course.current_position,
+            state=DailySessionState.SENT
         )
         session.add(daily_session)
         await session.commit()
@@ -47,4 +47,5 @@ async def send_mailing(session: AsyncSession) -> None:
 
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(send_mailing())
