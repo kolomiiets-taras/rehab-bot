@@ -73,7 +73,7 @@ async def populate_test_data():
                 current_position=current_position,
                 finished=(current_position == len(progress)-1),
                 mailing_time=time(),
-                mailing_days=",".join(str(d) for d in faker.random_elements(elements=range(1, 8), length=3, unique=True))
+                mailing_days=faker.random_elements(elements=range(1, 8), length=3, unique=True)
             )
             session.add(user_course)
             await session.flush()

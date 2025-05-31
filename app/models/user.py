@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import IntEnum
 
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Boolean, Text, Time, BigInteger
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Boolean, Text, Time, BigInteger, ARRAY
 from sqlalchemy.orm import relationship
 
 from app.config import app_config
@@ -35,26 +35,18 @@ class UserCourse(Base):
     current_position = Column(Integer, nullable=False, default=0)
     finished = Column(Boolean, nullable=True, default=False)
     mailing_time = Column(Time, nullable=True)
-    mailing_days = Column(String(100), nullable=True, default="")
+    mailing_days = Column(ARRAY(Integer), nullable=False, default=lambda: [])
 
     user = relationship("User", back_populates="courses")
     course = relationship("Course", back_populates="users")
     sessions = relationship("DailySession", order_by="DailySession.position", back_populates="user_course", cascade="all, delete-orphan")
 
     @property
-    def cron_expression(self) -> str:
-        if not self.mailing_time or not self.mailing_days:
-            return ""
-        hour = self.mailing_time.hour
-        minute = self.mailing_time.minute
-        return f"{minute:02d} {hour:02d} * * {self.mailing_days}"
-
-    @property
     def days_str(self) -> str:
         if not self.mailing_days:
             return ""
-        mapping = {'1': 'Пн', '2': 'Вт', '3': 'Ср', '4': 'Чт', '5': 'Пт', '6': 'Сб', '7': 'Нд'}
-        return ', '.join([mapping[day] for day in self.mailing_days.split(',') if day in mapping])
+        mapping = {1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Нд'}
+        return ', '.join([mapping[day] for day in self.mailing_days if day in mapping])
 
 
 class DailySessionState(IntEnum):

@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,11 +11,26 @@ from app.telegram_bot.utils import send_session
 
 @with_session
 async def send_mailing(session: AsyncSession) -> None:
+    now = datetime.now()
+    start = (now - timedelta(minutes=5)).time()
+    end = (now + timedelta(minutes=5)).time()
+
+    if start > end:
+        # Зазор пересекает полночь, пример: 23:57–00:02
+        time_filter = or_(
+            UserCourse.mailing_time >= start,
+            UserCourse.mailing_time <= end
+        )
+    else:
+        time_filter = and_(
+            UserCourse.mailing_time >= start,
+            UserCourse.mailing_time <= end
+        )
+
     filters = and_(
-        UserCourse.finished == False
-        # func.date_part('hour', UserCourse.mailing_time) == datetime.now().hour,
-        # func.date_part('minute', UserCourse.mailing_time) == datetime.now().minute,
-        # str(datetime.today().isoweekday()) in UserCourse.mailing_days
+        UserCourse.finished == False,
+        time_filter,
+        UserCourse.mailing_days.any(now.isoweekday())
     )
     user_course_result = await session.execute(
         select(UserCourse).where(filters).options(

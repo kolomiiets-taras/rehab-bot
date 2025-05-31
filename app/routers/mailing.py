@@ -125,7 +125,7 @@ async def add_mailing(
             course_id=course_id,
             progress=progress,
             mailing_time=mailing_time,
-            mailing_days=",".join(str(d) for d in sorted(mailing_days))
+            mailing_days=sorted(mailing_days)
         )
         db.add(user_course)
     await db.commit()
@@ -238,7 +238,7 @@ async def edit_mailing(
 
     if user_course:
         user_course.mailing_time = mailing_time
-        user_course.mailing_days = ",".join(str(d) for d in sorted(mailing_days))
+        user_course.mailing_days = sorted(mailing_days)
         await db.commit()
         logger.info(f"Edited mailing ID {mailing_id}")
 
