@@ -37,3 +37,9 @@ def wellbeing_keyboard():
     return builder.as_markup()
 
 
+def yes_no_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.button(text=_('appointment.yes'), callback_data='appointment_yes')
+    builder.button(text=_('appointment.no'), callback_data='appointment_no')
+    builder.adjust(2)
+    return builder.as_markup()

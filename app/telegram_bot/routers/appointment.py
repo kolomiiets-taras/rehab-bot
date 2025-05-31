@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.utils.i18n import lazy_gettext as __
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,10 +16,25 @@ _ = i18n.gettext
 
 
 @router.message(F.text == __('keyboards.appointment'))
+async def appointments_message(message: Message):
+    await appointments_handler(message, message.from_user.id)
+
+
+@router.callback_query(F.data == 'appointment_yes')
+async def appointments_callback_yes(callback: CallbackQuery):
+    await appointments_handler(callback.message, callback.from_user.id)
+    await callback.message.delete()
+
+
+@router.callback_query(F.data == 'appointment_no')
+async def appointments_callback_no(callback: CallbackQuery):
+    await callback.message.delete()
+
+
 @error_logger
 @with_session
-async def appointments_handler(message: Message, session: AsyncSession):
-    result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
+async def appointments_handler(message: Message, user_id: int, session: AsyncSession):
+    result = await session.execute(select(User).where(User.telegram_id == user_id))
     user = result.scalar_one_or_none()
 
     if user:

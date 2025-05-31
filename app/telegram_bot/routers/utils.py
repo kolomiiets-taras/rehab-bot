@@ -16,6 +16,7 @@ def validate_pulse(pulse: str) -> bool:
 
 
 async def finish_session(daily_session: DailySession, session: AsyncSession, skipped: bool):
+    finished = False
     progress = daily_session.user_course.progress
     position = daily_session.position
     state = '2' if skipped else '1'
@@ -25,6 +26,7 @@ async def finish_session(daily_session: DailySession, session: AsyncSession, ski
     daily_session.user_course.current_position += 1
     if daily_session.user_course.current_position == len(daily_session.user_course.course.items):
         daily_session.user_course.finished = True
+        finished = True
 
     session.add(daily_session.user_course)
     session.add(daily_session)
@@ -33,6 +35,7 @@ async def finish_session(daily_session: DailySession, session: AsyncSession, ski
         f"Session finished for user {daily_session.user_course.user_id} "
         f"({daily_session.id}), position: {position}, skipped: {skipped}"
     )
+    return finished
 
 
 def error_logger(func):

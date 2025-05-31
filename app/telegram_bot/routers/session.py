@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.db.session_wraper import with_session
 from app.models import DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course
-from app.telegram_bot.keyboards.session_keyboards import wellbeing_keyboard
+from app.telegram_bot.keyboards.session_keyboards import wellbeing_keyboard, yes_no_keyboard
 from app.telegram_bot.middlewares.localization import i18n
 from app.telegram_bot.routers.utils import validate_pulse, finish_session, error_logger
 from app.telegram_bot.utils import send_exercise
@@ -23,6 +23,7 @@ class Session(StatesGroup):
     wellbeing_before = State()
     wellbeing_after = State()
     exercise = State()
+    course_finishing = State()
 
 
 @router.callback_query(F.data.startswith("start_"))
@@ -75,9 +76,14 @@ async def skip_session_handler(callback: CallbackQuery, session: AsyncSession) -
     )
     daily_session = result.scalar_one_or_none()
     if daily_session:
-        await finish_session(daily_session, session, skipped=True)
+        finished = await finish_session(daily_session, session, skipped=True)
         await callback.message.delete()
         await callback.message.answer(_('session.skipped'))
+        if finished:
+            await callback.message.answer(
+                _('session.course_finishing').format(course_title=daily_session.user_course.course.name),
+                reply_markup=yes_no_keyboard()
+            )
         return
 
     await callback.message.answer(_('session.not_found'))
@@ -237,7 +243,13 @@ async def wellbeing_after_handler(callback: CallbackQuery, state: FSMContext, se
     await callback.message.answer(_('session.wellbeing_saved'))
     await callback.message.answer(_('session.finished'))
 
-    await finish_session(daily_session, session, skipped=False)
+    finished = await finish_session(daily_session, session, skipped=False)
+
+    if finished:
+        await callback.message.answer(
+            _('session.course_finishing').format(course_title=daily_session.user_course.course.name),
+            reply_markup=yes_no_keyboard()
+        )
 
     await state.clear()
     await callback.answer()
