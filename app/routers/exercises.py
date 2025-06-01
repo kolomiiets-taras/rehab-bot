@@ -90,7 +90,7 @@ async def add_exercise(
 @router.post("/delete/{exercise_id}")
 @access_for(Role.ADMIN)
 @error_handler('exercises')
-async def delete_exercise(exercise_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_exercise(request: Request, exercise_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
     if exercise:

@@ -56,11 +56,12 @@
                                                 <a href="/complexes/{{ complex.id }}"
                                                    class="btn btn-sm btn-info">Переглянути</a>
                                                 <button class="btn btn-sm btn-danger" data-toggle="modal"
-                                                        data-target="#deleteEmployeeModal{{ complex.id }}">
+                                                        data-target="#deleteComplexModal{{ complex.id }}">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </td>
                                         </tr>
+                                        {% include "modals/complex/delete-complex-modal.html" %}
                                     {% endfor %}
                                     </tbody>
                                 </table>

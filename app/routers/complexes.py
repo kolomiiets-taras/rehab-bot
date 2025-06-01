@@ -110,7 +110,7 @@ async def add_complex(
 @router.post("/delete/{complex_id}")
 @access_for(Role.ADMIN)
 @error_handler('complexes')
-async def delete_complex(complex_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_complex(request: Request, complex_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Complex).where(Complex.id == complex_id))
     comp = result.scalar_one_or_none()
     if comp:

@@ -24,7 +24,7 @@ async def list_messages(request: Request, db: AsyncSession = Depends(get_db)):
 @router.post("/add")
 @access_for(Role.ADMIN)
 @error_handler('motivation')
-async def create_message(message: str = Form(...), db: AsyncSession = Depends(get_db)):
+async def create_message(request: Request, message: str = Form(...), db: AsyncSession = Depends(get_db)):
     msg = MotivationMessage(message=message)
     db.add(msg)
     await db.commit()
@@ -35,7 +35,7 @@ async def create_message(message: str = Form(...), db: AsyncSession = Depends(ge
 @router.post("/edit/{message_id}")
 @access_for(Role.ADMIN)
 @error_handler('motivation')
-async def update_message(message_id: int, message: str = Form(...), db: AsyncSession = Depends(get_db)):
+async def update_message(request: Request, message_id: int, message: str = Form(...), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(MotivationMessage).where(MotivationMessage.id == message_id))
     msg = result.scalar_one_or_none()
     if msg:
@@ -50,7 +50,7 @@ async def update_message(message_id: int, message: str = Form(...), db: AsyncSes
 @router.post("/delete/{message_id}")
 @access_for(Role.ADMIN)
 @error_handler('motivation')
-async def delete_message(message_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_message(request: Request, message_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(MotivationMessage).where(MotivationMessage.id == message_id))
     msg = result.scalar_one_or_none()
     if msg:

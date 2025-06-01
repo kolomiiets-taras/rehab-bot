@@ -141,7 +141,7 @@ async def edit_course(
 @router.post("/delete/{course_id}")
 @access_for(Role.ADMIN)
 @error_handler('courses')
-async def delete_course(course_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_course(request: Request, course_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Course).where(Course.id == course_id))
     course = result.scalar_one_or_none()
     if course:
