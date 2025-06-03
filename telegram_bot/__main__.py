@@ -30,5 +30,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    from db.connector import add_first_admin
+    add_first_admin()
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
