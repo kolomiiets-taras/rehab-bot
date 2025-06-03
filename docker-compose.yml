@@ -23,13 +23,15 @@ services:
       - SERVICE_TYPE=api
     env_file:
       - .env
+    volumes:
+      - ./logs:/app/logs  # Додано вольюм для логів
     depends_on:
       db:
         condition: service_healthy
     networks:
       - spina_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -42,6 +44,8 @@ services:
       - SERVICE_TYPE=bot
     env_file:
       - .env
+    volumes:
+      - ./logs:/app/logs  # Додано вольюм для логів
     depends_on:
       db:
         condition: service_healthy
