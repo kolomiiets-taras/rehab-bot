@@ -1,17 +1,29 @@
+# Базовий образ
 FROM python:3.12-slim
 
+# Встановлення системних залежностей
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    gettext \
+    libmagic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Робоча директорія
 WORKDIR /app
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
-
+# Копіювання залежностей
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# Копіювання проєкту
 COPY . .
 
-RUN chmod +x run_service.sh
+# Компіляція мовних файлів
+RUN pybabel compile -d telegram_bot/locales --use-fuzzy
 
-ENTRYPOINT ["./run_service.sh"]
+# Змінні середовища для Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app

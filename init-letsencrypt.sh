@@ -69,7 +69,7 @@ EOF
 services:
   nginx:
     volumes:
-      - ${nginx_temp_conf}:/etc/nginx/conf.d/${domain}.conf:ro
+      - ${nginx_temp_conf}:/etc/nginx/conf.d/temp.conf:ro
 EOF
 
     # Check Nginx accessibility

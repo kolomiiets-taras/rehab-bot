@@ -1,19 +1,23 @@
 services:
   db:
-    image: postgres:15
     container_name: spina_postgres
+    image: postgres:17-alpine
+    environment:
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     restart: always
     env_file:
       - .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
 
   api:
     build: .
     container_name: spina_api
+    command: python -m backend
     restart: always
-    environment:
-      - SERVICE_TYPE=api
     env_file:
       - .env
     volumes:
@@ -24,9 +28,8 @@ services:
   bot:
     build: .
     container_name: spina_bot
+    command: python -m telegram_bot
     restart: always
-    environment:
-      - SERVICE_TYPE=bot
     env_file:
       - .env
     volumes:
