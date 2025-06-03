@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
 
-from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from config import app_config
 
+from config import app_config
 from backend.handlers import not_found_handler
 from backend.middlewares.auth_middleware import auth_middleware
 from backend.middlewares.log_middleware import log_middleware
@@ -23,27 +24,33 @@ from backend.routers import (
 )
 from db.connector import create_db_and_tables
 
-
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await create_db_and_tables()
     yield
 
-
 app = FastAPI(lifespan=lifespan)
 
-# Trust proxy headers for HTTPS
+# Довіряємо заголовкам проксі
+app.add_middleware(ProxyHeadersMiddleware)
+
+# Довіряємо лише певним хостам
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=["spina.in.ua", "www.spina.in.ua", "localhost", "127.0.0.1"]
 )
 
+# Монтуємо статичні файли
 app.mount("/static", StaticFiles(directory=app_config.STATIC_PATH), name="static")
 
+# Додаємо власні middleware
 app.middleware("http")(log_middleware)
 app.middleware("http")(auth_middleware)
+
+# Обробник виключень
 app.add_exception_handler(StarletteHTTPException, not_found_handler)
 
+# Підключаємо маршрути
 app.include_router(login_router, tags=["login"])
 app.include_router(index_router, tags=["index"])
 app.include_router(api_router, tags=["api"])
@@ -57,4 +64,9 @@ app.include_router(motivation_router, tags=["motivation"])
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        forwarded_allow_ips="*"
+    )
