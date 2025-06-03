@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
 from config import app_config
 from backend.handlers import not_found_handler
@@ -23,12 +25,32 @@ from backend.routers import (
 )
 from db.connector import create_db_and_tables
 
+
+class ProxyHeadersMiddleware(BaseHTTPMiddleware):
+    """Middleware для правильної обробки HTTPS через nginx proxy"""
+
+    async def dispatch(self, request: Request, call_next):
+        # Встановлюємо HTTPS якщо запит прийшов через nginx
+        if request.headers.get("x-forwarded-proto") == "https":
+            # Змінюємо схему на HTTPS
+            request.scope["scheme"] = "https"
+            # Встановлюємо правильний порт
+            request.scope["server"] = (request.scope["server"][0], 443)
+
+        response = await call_next(request)
+        return response
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await create_db_and_tables()
     yield
 
+
 app = FastAPI(lifespan=lifespan)
+
+# Додаємо middleware для обробки proxy заголовків ПЕРШИМ
+app.add_middleware(ProxyHeadersMiddleware)
 
 # Довіряємо лише певним хостам
 app.add_middleware(
@@ -60,4 +82,5 @@ app.include_router(motivation_router, tags=["motivation"])
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000, proxy_headers=True)
