@@ -188,3 +188,4 @@ fabric.properties
 /.idea/vcs.xml
 /backend/static/exercises_media/
 /logs/
+certbot/
