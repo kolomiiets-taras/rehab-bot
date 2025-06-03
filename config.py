@@ -30,7 +30,7 @@ class Config:
 
     MEDIA_PATH = BASE_DIR / 'backend' / 'static' / 'exercises_media'
     LOGS_PATH = BASE_DIR / 'logs'
-    LOCALES_PATH = BASE_DIR / 'backend' / 'telegram_bot' / 'locales'
+    LOCALES_PATH = BASE_DIR / 'telegram_bot' / 'locales'
     STATIC_PATH = BASE_DIR / 'backend' / 'static'
 
     SUPPORTED_LANGUAGES = ['uk']
