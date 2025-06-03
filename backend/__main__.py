@@ -20,16 +20,13 @@ from backend.routers import (
     index_router,
     motivation_router
 )
-from db.connector import create_db_and_tables, drop_db_tables, add_first_admin
+from db.connector import create_db_and_tables
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await create_db_and_tables()
-    # await populate_test_data()
-    # await add_first_admin()
     yield
-    # await drop_db_tables()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -39,11 +36,6 @@ app.mount("/static", StaticFiles(directory=app_config.STATIC_PATH), name="static
 app.middleware("http")(log_middleware)
 app.middleware("http")(auth_middleware)
 app.add_exception_handler(StarletteHTTPException, not_found_handler)
-
-
-@app.get("/")
-async def healthcheck():
-    return {"status": "healthy", "service": "spina-rehab-api"}
 
 app.include_router(login_router, tags=["login"])
 app.include_router(index_router, tags=["index"])
