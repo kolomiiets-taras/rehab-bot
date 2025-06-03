@@ -30,11 +30,6 @@ services:
         condition: service_healthy
     networks:
       - spina_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   bot:
     build: .
@@ -45,7 +40,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./logs:/app/logs  # Додано вольюм для логів
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
@@ -64,8 +59,7 @@ services:
       - ./certbot/www:/var/www/certbot
       - ./certbot/conf:/etc/letsencrypt
     depends_on:
-      api:
-        condition: service_healthy
+      - api
     networks:
       - spina_network
 
