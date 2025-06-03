@@ -9,7 +9,7 @@ from sqlalchemy import select
 async def auth_middleware(request: Request, call_next) -> Response:
     token = request.cookies.get("access_token")
     request.state.user = None
-    public_paths = {"/login", "/signup", "/static", "/favicon.ico"}
+    public_paths = {"/login", "/signup", "/static", "/favicon.ico", "/healthcheck"}
 
     if any(request.url.path.startswith(path) for path in public_paths):
         return await call_next(request)

@@ -7,13 +7,6 @@ services:
       - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - spina_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   api:
     build: .
@@ -24,12 +17,10 @@ services:
     env_file:
       - .env
     volumes:
-      - ./logs:/app/logs  # Додано вольюм для логів
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - spina_network
 
   bot:
     build: .
@@ -44,8 +35,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - spina_network
 
   nginx:
     image: nginx:latest
@@ -60,8 +49,6 @@ services:
       - ./certbot/conf:/etc/letsencrypt
     depends_on:
       - api
-    networks:
-      - spina_network
 
   certbot:
     image: certbot/certbot
@@ -73,7 +60,3 @@ services:
 
 volumes:
   postgres_data:
-
-networks:
-  spina_network:
-    driver: bridge
