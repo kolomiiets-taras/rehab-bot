@@ -1,4 +1,4 @@
-server {Add commentMore actions
+server {
     listen 80;
     server_name spina.in.ua www.spina.in.ua;
 
