@@ -42,6 +42,8 @@ class Config:
             self.MEDIA_PATH.mkdir(parents=True, exist_ok=True)
         if not self.LOGS_PATH.exists():
             self.LOGS_PATH.mkdir(parents=True, exist_ok=True)
+        if not self.LOCALES_PATH.exists():
+            self.LOCALES_PATH.mkdir(parents=True, exist_ok=True)
 
 
 app_config = Config()
