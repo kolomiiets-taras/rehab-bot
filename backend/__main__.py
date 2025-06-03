@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from config import app_config
@@ -30,9 +29,6 @@ async def lifespan(_app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-
-# Довіряємо заголовкам проксі
-app.add_middleware(ProxyHeadersMiddleware)
 
 # Довіряємо лише певним хостам
 app.add_middleware(
@@ -64,9 +60,4 @@ app.include_router(motivation_router, tags=["motivation"])
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        forwarded_allow_ips="*"
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8000, proxy_headers=True)
