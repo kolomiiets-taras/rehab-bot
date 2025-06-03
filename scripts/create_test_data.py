@@ -4,12 +4,12 @@ from datetime import datetime, timedelta, date, time
 from faker import Faker
 from passlib.handlers.bcrypt import bcrypt
 
-from app.db.database import async_session
-from app.models.user import User, UserCourse, DailySession
-from app.models.course import Course, CourseItem
-from app.models.complex import Complex, ComplexExercise
-from app.models.exercise import Exercise
-from app.models.employee import Employee, Role
+from db.database import async_session
+from db.models.user import User, UserCourse, DailySession
+from db.models.course import Course, CourseItem
+from db.models.complex import Complex, ComplexExercise
+from db.models.exercise import Exercise
+from db.models.employee import Employee, Role
 
 faker = Faker("uk_UA")
 

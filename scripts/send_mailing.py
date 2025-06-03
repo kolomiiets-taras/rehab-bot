@@ -4,9 +4,9 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.session_wraper import with_session
-from app.models import UserCourse, Course, CourseItem, DailySession, DailySessionState
-from app.telegram_bot.utils import send_session
+from db.session_wraper import with_session
+from db.models import UserCourse, Course, CourseItem, DailySession, DailySessionState
+from telegram_bot.utils import send_session
 
 
 @with_session

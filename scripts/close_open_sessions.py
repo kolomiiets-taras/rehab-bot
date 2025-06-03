@@ -4,10 +4,10 @@ from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.session_wraper import with_session
-from app.logger import logger
-from app.models import DailySession, DailySessionState, UserCourse, Course
-from app.telegram_bot.routers.utils import finish_session
+from db.session_wraper import with_session
+from logger import logger
+from db.models import DailySession, DailySessionState, UserCourse, Course
+from telegram_bot.routers.utils import finish_session
 
 
 @with_session

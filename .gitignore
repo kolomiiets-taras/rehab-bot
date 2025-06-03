@@ -182,9 +182,9 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # idea folder, uncomment if you don't need it
-# .idea
+.idea/
 /.idea/Rehab.iml
 /.idea/.gitignore
 /.idea/vcs.xml
-/app/static/exercises_media/
+/backend/static/exercises_media/
 /logs/
