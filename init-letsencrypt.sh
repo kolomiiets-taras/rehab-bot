@@ -18,7 +18,7 @@ setup_ssl() {
     local domain="spina.in.ua"
     local email="dr.loktionov@gmail.com"
     local nginx_conf_dir="./nginx/conf"
-    local nginx_temp_conf="${nginx_conf_dir}/${domain}.temp.conf"
+    local nginx_temp_conf="${nginx_conf_dir}/temp-letsencrypt.conf"
 
     # Start a new log file
     echo "SSL CERTIFICATE SETUP - $(date)" > ssl-setup.log
@@ -27,6 +27,30 @@ setup_ssl() {
     # Stop previous containers
     log_step "Stopping previous containers"
     docker compose down -v || true
+
+    # Find existing nginx configuration file
+    log_step "Looking for existing nginx configuration"
+    local existing_conf=""
+    for conf_file in ${nginx_conf_dir}/*.conf; do
+        if [ -f "$conf_file" ] && [[ "$conf_file" != *"temp-letsencrypt.conf" ]]; then
+            existing_conf="$conf_file"
+            break
+        fi
+    done
+
+    if [ -n "$existing_conf" ]; then
+        log_info "Found existing configuration: $existing_conf"
+        # Create backup with timestamp to avoid conflicts
+        local backup_file="${existing_conf}.backup.$(date +%s)"
+        cp "$existing_conf" "$backup_file"
+        log_info "Configuration backed up to: $backup_file"
+
+        # Remove original to avoid conflicts during temporary setup
+        rm "$existing_conf"
+    else
+        log_error "No existing nginx configuration found in $nginx_conf_dir"
+        exit 1
+    fi
 
     # Prepare certbot directories
     log_step "Creating and configuring certbot directories"
@@ -65,12 +89,7 @@ EOF
 
     # Launch temporary Nginx container with temporary configuration
     log_step "Launching temporary Nginx container with temporary configuration"
-    docker compose -f docker-compose.yml -f - up -d --no-deps nginx <<EOF
-services:
-  nginx:
-    volumes:
-      - ${nginx_temp_conf}:/etc/nginx/conf.d/temp.conf:ro
-EOF
+    docker compose up -d --no-deps nginx
 
     # Check Nginx accessibility
     log_step "Checking Nginx accessibility"
@@ -108,9 +127,16 @@ EOF
     if [ ! -d "./certbot/conf/live/$domain" ]; then
         log_error "Failed to obtain certificates. Check ssl-setup.log file for details"
 
+        # Restore original configuration
+        if [ -n "$backup_file" ] && [ -f "$backup_file" ]; then
+            log_step "Restoring original nginx configuration"
+            cp "$backup_file" "$existing_conf"
+            rm "$backup_file"
+        fi
+
         # Remove temporary files
         log_step "Removing temporary files"
-        rm -rf "$nginx_temp_conf"
+        rm -f "$nginx_temp_conf"
 
         exit 1
     fi
@@ -119,9 +145,16 @@ EOF
 
     # Remove temporary configuration
     log_step "Removing temporary configuration"
-    rm -rf "$nginx_temp_conf"
+    rm -f "$nginx_temp_conf"
 
-    # Launch all containers with SSL (using main configuration)
+    # Restore original nginx configuration with correct name
+    log_step "Restoring original nginx configuration"
+    local final_conf="${nginx_conf_dir}/${domain}.conf"
+    cp "$backup_file" "$final_conf"
+    rm "$backup_file"
+    log_info "Original configuration restored as: $final_conf"
+
+    # Launch all containers with SSL (using restored configuration)
     log_step "Launching all containers with SSL enabled"
     docker compose down
     docker compose up -d --build
