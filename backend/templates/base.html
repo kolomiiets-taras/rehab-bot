@@ -42,7 +42,10 @@
     {% endblock %}
 
     <!-- Bootstrap core JavaScript (jQuery повинен бути ПЕРЕД select2) -->
-    <script src="{{ url_for('static', path='vendor/jquery/jquery.min.js') }}"></script>
+    <!-- Використовуємо jQuery з CDN замість локального файлу для кращої сумісності -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
 
     <!-- Core plugin JavaScript -->
     <script src="{{ url_for('static', path='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
