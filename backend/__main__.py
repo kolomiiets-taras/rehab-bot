@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from config import app_config
 
@@ -30,6 +31,12 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Trust proxy headers for HTTPS
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["spina.in.ua", "www.spina.in.ua", "localhost", "127.0.0.1"]
+)
 
 app.mount("/static", StaticFiles(directory=app_config.STATIC_PATH), name="static")
 
