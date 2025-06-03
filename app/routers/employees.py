@@ -46,6 +46,7 @@ async def employees_list(request: Request, db: AsyncSession = Depends(get_db)):
 @access_for(Role.ADMIN)
 @error_handler('employees')
 async def edit_employee(
+    request: Request,
     employee_id: int,
     first_name: str = Form(...),
     last_name: str = Form(...),
@@ -73,7 +74,7 @@ async def edit_employee(
 @router.post("/delete/{employee_id}")
 @access_for()
 @error_handler('employees')
-async def delete_employee(employee_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_employee(request: Request, employee_id: int, db: AsyncSession = Depends(get_db)):
     employee = await db.get(Employee, employee_id)
     if employee:
         await db.delete(employee)
@@ -89,6 +90,7 @@ async def delete_employee(employee_id: int, db: AsyncSession = Depends(get_db)):
 @access_for()
 @error_handler('employees')
 async def add_employee(
+    request: Request,
     first_name: str = Form(...),
     last_name: str = Form(...),
     email: str = Form(...),

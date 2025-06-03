@@ -2,7 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.handlers import not_found_handler
 from app.middlewares.auth_middleware import auth_middleware
 from app.middlewares.log_middleware import log_middleware
 from app.routers import (
@@ -35,6 +37,8 @@ app.mount("/static", StaticFiles(directory="./static"), name="static")
 
 app.middleware("http")(log_middleware)
 app.middleware("http")(auth_middleware)
+app.add_exception_handler(StarletteHTTPException, not_found_handler)
+
 
 app.include_router(login_router, tags=["login"])
 app.include_router(index_router, tags=["index"])
