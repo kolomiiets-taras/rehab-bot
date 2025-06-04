@@ -189,3 +189,4 @@ fabric.properties
 /backend/static/exercises_media/
 /logs/
 certbot/
+cron_logs/
