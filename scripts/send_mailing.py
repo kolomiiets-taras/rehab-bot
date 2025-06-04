@@ -1,3 +1,8 @@
+import os
+
+# Встановлюємо змінну оточення POSTGRES_HOST до будь-яких імпортів
+os.environ["POSTGRES_HOST"] = "localhost"
+
 from datetime import date, datetime, timedelta
 
 from sqlalchemy import select, and_, or_
@@ -7,16 +12,20 @@ from sqlalchemy.orm import selectinload
 from db.session_wraper import with_session
 from db.models import UserCourse, Course, CourseItem, DailySession, DailySessionState
 from telegram_bot.utils import send_session
+from logger import logger
 
 
 @with_session
 async def send_mailing(session: AsyncSession) -> None:
+    """Функція для відправки розсилок користувачам."""
     now = datetime.now()
+    logger.info(f"Запуск розсилки о {now}")
+
     start = (now - timedelta(minutes=5)).time()
     end = (now + timedelta(minutes=5)).time()
 
     if start > end:
-        # Зазор пересекает полночь, пример: 23:57–00:02
+        # Зазор пересікає опівніч
         time_filter = or_(
             UserCourse.mailing_time >= start,
             UserCourse.mailing_time <= end
@@ -40,6 +49,8 @@ async def send_mailing(session: AsyncSession) -> None:
         )
     )
     user_courses = user_course_result.scalars().all()
+    logger.info(f"Знайдено {len(user_courses)} курсів для розсилки")
+
     for user_course in user_courses:
         current_item = user_course.course.items[user_course.current_position]
         daily_session = DailySession(
@@ -63,4 +74,5 @@ async def send_mailing(session: AsyncSession) -> None:
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(send_mailing())

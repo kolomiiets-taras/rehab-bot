@@ -1,3 +1,8 @@
+import os
+
+# Встановлюємо змінну оточення POSTGRES_HOST до будь-яких імпортів
+os.environ["POSTGRES_HOST"] = "localhost"
+
 from datetime import datetime
 
 from sqlalchemy import select, and_
@@ -12,6 +17,9 @@ from telegram_bot.routers.utils import finish_session
 
 @with_session
 async def close_open_sessions(session: AsyncSession):
+    """Закриває всі відкриті сесії, які були створені до поточної дати."""
+    logger.info(f"Початок закриття відкритих сесій: {datetime.now()}")
+
     filters = and_(
         DailySession.state.in_([DailySessionState.IN_PROGRESS, DailySessionState.SENT]),
         DailySession.date < datetime.today().date()
@@ -26,11 +34,15 @@ async def close_open_sessions(session: AsyncSession):
         )
     )
     open_sessions = sessions_result.scalars().all()
-    logger.warning(f"Skipping {len(open_sessions)} open sessions")
+    logger.warning(f"Закриваємо {len(open_sessions)} відкритих сесій")
+
     for daily_session in open_sessions:
         await finish_session(daily_session, session, skipped=True)
+
+    logger.info(f"Закриття відкритих сесій завершено: {datetime.now()}")
 
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(close_open_sessions())
