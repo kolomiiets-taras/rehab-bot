@@ -25,6 +25,7 @@ class Config:
     POSTGRES_PORT: Final[str] = getenv('POSTGRES_PORT', '5432')
     POSTGRES_DB: Final[str] = getenv('POSTGRES_DB', 'test_db')
     SQLALCHEMY_DATABASE_URL: Final[str] = f'postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+    ALEMBIC_DATABASE_URL: Final[str] = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:{POSTGRES_PORT}/{POSTGRES_DB}'
 
     TEMPLATES = Jinja2Templates(directory=BASE_DIR / 'backend' / 'templates')
 

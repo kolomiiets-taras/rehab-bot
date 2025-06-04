@@ -53,8 +53,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-sync_url = app_config.SQLALCHEMY_DATABASE_URL.replace("+asyncpg", "").replace('db', 'localhost')
-engine = create_engine(sync_url)
+engine = create_engine(app_config.ALEMBIC_DATABASE_URL)
 
 
 def run_migrations_online():
