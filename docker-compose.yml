@@ -12,6 +12,12 @@ services:
     restart: always
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api:
     build: .
@@ -23,7 +29,8 @@ services:
     volumes:
       - ./logs:/app/logs
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   bot:
     build: .
@@ -35,7 +42,8 @@ services:
     volumes:
       - ./logs:/app/logs
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   nginx:
     image: nginx:latest
