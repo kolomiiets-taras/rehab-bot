@@ -109,7 +109,7 @@ async def delete_exercise(request: Request, exercise_id: int, db: AsyncSession =
     return RedirectResponse(url="/exercises?success=1", status_code=303)
 
 
-@router.post("edit/{exercise_id}")
+@router.post("/edit/{exercise_id}")
 @access_for(Role.ADMIN)
 @error_handler('exercises')
 async def edit_exercise(

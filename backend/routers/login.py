@@ -16,6 +16,8 @@ router = APIRouter()
 
 @router.get("/login")
 async def login_form(request: Request):
+    if request.cookies.get("access_token"):
+        return RedirectResponse(url="/users", status_code=303)
     return app_config.TEMPLATES.TemplateResponse("login/login.html", {"request": request})
 
 

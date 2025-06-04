@@ -2,7 +2,7 @@
 <div class="modal fade" id="editEmployeeModal{{ employee.id }}" tabindex="-1" role="dialog"
      aria-labelledby="editEmployeeModalLabel{{ employee.id }}" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form method="post" action="/employees/edit{{ employee.id }}">
+        <form method="post" action="/employees/edit/{{ employee.id }}">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editEmployeeModalLabel{{ employee.id }}">Редагувати співробітника</h5>
@@ -30,7 +30,7 @@
                     <div class="form-group">
                         <label>Роль</label>
                         <select name="role" class="form-control">
-                            {% for role_value, role_name in [(0, 'OWNER'), (1, 'ADMIN'), (2, 'DOCTOR')] %}
+                            {% for role_value, role_name in roles %}
                                 <option value="{{ role_value }}"
                                         {% if employee.role == role_value %}selected{% endif %}>{{ role_name }}
                                 </option>

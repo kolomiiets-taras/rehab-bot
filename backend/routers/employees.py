@@ -42,7 +42,7 @@ async def employees_list(request: Request, db: AsyncSession = Depends(get_db)):
     })
 
 
-@router.post("edit/{employee_id}")
+@router.post("/edit/{employee_id}")
 @access_for(Role.ADMIN)
 @error_handler('employees')
 async def edit_employee(

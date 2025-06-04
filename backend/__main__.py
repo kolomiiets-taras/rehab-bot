@@ -56,7 +56,7 @@ app.add_middleware(ProxyHeadersMiddleware)
 # Довіряємо лише певним хостам
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["spina.in.ua", "www.spina.in.ua", "localhost", "127.0.0.1"]
+    allowed_hosts=["spina.in.ua", "www.spina.in.ua", "localhost", "127.0.0.1", '0.0.0.0']
 )
 
 # Монтуємо статичні файли
