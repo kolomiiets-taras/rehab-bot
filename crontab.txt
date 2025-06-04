@@ -1,5 +1,5 @@
 # Відправка розсилок кожні 30 хвилин
-*/30 * * * * cd ~/rehab-bot && ~/rehab-bot/venv/bin/python -m scripts.send_mailing >> ~/rehab-bot/logs/mailing.log 2>&1
+*/30 * * * * /home/dmytro_admin/rehab-bot/run_cron_script.sh send_mailing
 
 # Закриття відкритих сесій о 00:00 щодня
-0 0 * * * cd ~/rehab-bot && ~/rehab-bot/venv/bin/python -m scripts.close_open_sessions >> ~/rehab-bot/logs/close_sessions.log 2>&1
+0 0 * * * /home/dmytro_admin/rehab-bot/run_cron_script.sh close_open_sessions
