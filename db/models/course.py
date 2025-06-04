@@ -12,6 +12,10 @@ class Course(Base):
     items = relationship("CourseItem", back_populates="course", order_by="CourseItem.position")
     users = relationship("UserCourse", back_populates="course", cascade="all, delete-orphan")
 
+    @property
+    def items_count(self) -> int:
+        return len(self.items)
+
 
 class CourseItem(Base):
     __tablename__ = "course_item"

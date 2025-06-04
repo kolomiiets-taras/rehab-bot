@@ -36,6 +36,8 @@ class UserCourse(Base):
     finished = Column(Boolean, nullable=True, default=False)
     mailing_time = Column(Time, nullable=True)
     mailing_days = Column(ARRAY(Integer), nullable=False, default=lambda: [])
+    iterations = Column(Integer, nullable=False, default=1)
+    current_iteration = Column(Integer, nullable=False, default=1)
 
     user = relationship("User", back_populates="courses")
     course = relationship("Course", back_populates="users")
@@ -47,6 +49,11 @@ class UserCourse(Base):
             return ""
         mapping = {1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Нд'}
         return ', '.join([mapping[day] for day in self.mailing_days if day in mapping])
+
+    @property
+    def current_item_index(self) -> int:
+        """Calculate the relative position in the current iteration."""
+        return self.current_position % self.course.items_count
 
 
 class DailySessionState(IntEnum):

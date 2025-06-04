@@ -1,7 +1,24 @@
 {% extends "base.html" %}
 
 {% block title %}Розсилки{% endblock %}
+{% block head %}
+<style>
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(10, auto);
+      gap: 2px;
+    }
 
+    .badge-square {
+      width: 1.6em;
+      height: 1.6em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}
 {% set body_class = "page-top" %}
 {% block content %}
     <!-- Page Wrapper -->
@@ -42,6 +59,7 @@
                                         <th>Завершено</th>
                                         <th>Час розсилки</th>
                                         <th>Дні розсилки</th>
+                                        <th>Повтори</th>
                                         <th>Дія</th>
                                     </tr>
                                     </thead>
@@ -52,26 +70,28 @@
                                             <td>{{ mailing.user.last_name }} {{ mailing.user.first_name }}</td>
                                             <td>{{ mailing.course.name }}</td>
                                             <td>{{ mailing.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                            <td style="max-width: 120px; font-family: monospace; white-space: normal;">
-                                              {% for status in mailing.progress %}
-                                                {% if loop.index0 != 0 and loop.index0 % 10 == 0 %}
-                                                  <br>
-                                                {% endif %}
-                                                  {% set is_current = loop.index == mailing.current_position %}
-                                                {% if status == '0' %}
-                                                  <span title="Не надіслано" class="badge badge-secondary {{ 'border border-dark' if is_current else '' }}">•</span>
-                                                {% elif status == '1' %}
-                                                  <span title="Виконано" class="badge badge-success {{ 'border border-dark' if is_current else '' }}">✓</span>
-                                                {% elif status == '2' %}
-                                                  <span title="Не виконано" class="badge badge-warning {{ 'border border-dark' if is_current else '' }}">✗</span>
-                                                {% endif %}
-                                              {% endfor %}
+                                            <td>
+                                                {% set status_map = {
+                                                    '0': {'title': 'Не надіслано', 'class': 'badge-secondary', 'text': '•'},
+                                                    '1': {'title': 'Виконано', 'class': 'badge-success', 'text': '✓'},
+                                                    '2': {'title': 'Не виконано', 'class': 'badge-warning', 'text': '✗'},
+                                                } %}
+                                                <div class="badge-grid">
+                                                    {% for status in mailing.progress %}
+                                                        {% set info = status_map[status] %}
+                                                        {% set is_current = loop.index == mailing.current_position %}
+                                                        <span title="{{ info.title }}" class="badge badge-square {{ info.class }} {{ 'border border-dark' if is_current else '' }}">
+                                                            {{ info.text }}
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
                                             </td>
-                                            <td>{{ 'Так' if mailing.finished else 'Ні'}}</td>
+                                            <td>{{ 'Так' if mailing.finished else 'Ні' }}</td>
                                             <td>{{ mailing.mailing_time }}</td>
                                             <td>{{ mailing.days_str }}</td>
+                                            <td>{{ mailing.iterations }}</td>
                                             <td>
-                                                 <button class="btn btn-sm btn-info" data-toggle="modal"
+                                                <button class="btn btn-sm btn-info" data-toggle="modal"
                                                         data-target="#editMailingModal{{ mailing.id }}">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -81,7 +101,7 @@
                                                 </button>
                                                 {% if mailing.finished %}
                                                     <button class="btn btn-sm btn-success" data-toggle="modal"
-                                                        data-target="#startMailingModal{{ mailing.id }}">
+                                                            data-target="#startMailingModal{{ mailing.id }}">
                                                         <i class="fa-regular fa-circle-play"></i>
                                                     </button>
                                                 {% else %}

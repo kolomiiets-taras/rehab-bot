@@ -32,8 +32,6 @@ async def complexes_list(request: Request, db: AsyncSession = Depends(get_db)):
 
     complexes_result = await db.execute(stmt)
     complexes = complexes_result.scalars().all()
-    for comp in complexes:
-        comp.exercises_count = len(comp.exercises)
 
     return templates.TemplateResponse(
         "complex/complexes.html", {

@@ -80,11 +80,12 @@ async def add_mailing(
     items_json: str = Form(None),
     mailing_time: time = Form(...),
     mailing_days: list[int] = Form(...),
+    iterations: int = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
 
     if items := json.loads(items_json or "[]"):
-        course = Course(name=course_name if course_name else 'Без Назви')
+        course = Course(name=course_name or 'Без Назви')
         db.add(course)
         await db.flush()  # присвоит course.id
 
@@ -103,7 +104,7 @@ async def add_mailing(
             select(Course).where(Course.id == course_id).options(selectinload(Course.items))
         )
         course = course_result.scalar_one_or_none()
-        progress = '0' * len(course.items)
+        progress = '0' * course.items_count
 
     for user_id in users:
         # 1. Найти активную рассылку для пользователя (если есть)
@@ -122,9 +123,10 @@ async def add_mailing(
         user_course = UserCourse(
             user_id=user_id,
             course_id=course_id,
-            progress=progress,
+            progress=progress * iterations,
             mailing_time=mailing_time,
-            mailing_days=sorted(mailing_days)
+            mailing_days=sorted(mailing_days),
+            iterations=iterations
         )
         db.add(user_course)
     await db.commit()

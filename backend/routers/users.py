@@ -118,26 +118,32 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
             start_date += timedelta(days=1)
 
         for i, bit in enumerate(progress_bits):
-            if bit == "0":
-                status = 'not_sent'
-            elif bit == "1":
-                status = 'done'
-            else:
-                status = 'missed'
+            match bit:
+                case "0":
+                    status = 'not_sent'
+                case "1":
+                    status = 'done'
+                case "2":
+                    status = 'missed'
+                case _:
+                    status = 'missed'
+
+            pulse_before = '-'
+            pulse_after = '-'
+            wellbeing_before = '-'
+            wellbeing_after = '-'
+
             if sessions and status in ['done', 'missed']:
                 pulse_before = sessions[i].pulse_before or '-'
                 pulse_after = sessions[i].pulse_after or '-'
                 wellbeing_before = sessions[i].wellbeing_before or '-'
                 wellbeing_after = sessions[i].wellbeing_after or '-'
+
+            item_index = i % user_course.course.items_count
+            if user_course.course.items[item_index].is_exercise:
+                exercise_title = user_course.course.items[item_index].exercise.title
             else:
-                pulse_before = '-'
-                pulse_after = '-'
-                wellbeing_before = '-'
-                wellbeing_after = '-'
-            if user_course.course.items[i].is_exercise:
-                exercise_title = user_course.course.items[i].exercise.title
-            else:
-                exercise_title = user_course.course.items[i].complex.name
+                exercise_title = user_course.course.items[item_index].complex.name
             course_days.append({
                 "date": calendar_dates[i].strftime("%d-%m"),
                 "status": status,

@@ -11,6 +11,10 @@ class Complex(Base):
 
     exercises = relationship("ComplexExercise", back_populates="complex", order_by="ComplexExercise.position")
 
+    @property
+    def exercises_count(self) -> int:
+        return len(self.exercises)
+
 
 class ComplexExercise(Base):
     __tablename__ = "complex_exercise"

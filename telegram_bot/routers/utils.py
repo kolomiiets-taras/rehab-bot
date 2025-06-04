@@ -25,9 +25,13 @@ async def finish_session(daily_session: DailySession, session: AsyncSession, ski
     daily_session.state = DailySessionState.SKIPPED if skipped else DailySessionState.FINISHED
 
     daily_session.user_course.current_position += 1
-    if daily_session.user_course.current_position == len(daily_session.user_course.course.items):
-        daily_session.user_course.finished = True
-        finished = True
+    current_position = daily_session.user_course.current_position
+    current_iteration = daily_session.user_course.current_iteration
+    if daily_session.user_course.course.items_count == current_position / current_iteration:
+        if daily_session.user_course.current_iteration == daily_session.user_course.iterations:
+            daily_session.user_course.finished = True
+            finished = True
+        daily_session.user_course.current_iteration += 1
 
     session.add(daily_session.user_course)
     session.add(daily_session)
