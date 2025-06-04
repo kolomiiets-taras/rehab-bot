@@ -1,23 +1,14 @@
+#!/usr/bin/env python3
 import os
 import asyncio
-import logging
 from datetime import date, datetime, timedelta
-from pathlib import Path
 
-# Встановлюємо змінну оточення POSTGRES_HOST до будь-яких імпортів
-os.environ["POSTGRES_HOST"] = "localhost"
+# Встановлюємо змінну оточення POSTGRES_HOST для підключення до локальної бази
+if 'POSTGRES_HOST' not in os.environ:
+    os.environ['POSTGRES_HOST'] = 'localhost'
 
-# Налаштування власного логера
-log_dir = Path(__file__).parent.parent / "cron_logs"
-log_dir.mkdir(exist_ok=True)
-
-logger = logging.getLogger("send_mailing")
-logger.setLevel(logging.INFO)
-
-handler = logging.FileHandler(log_dir / "send_mailing.log")
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# Імпортуємо логер
+from logger import logger
 
 # Імпортуємо необхідні модулі для роботи з базою даних
 from sqlalchemy import select, and_, or_
@@ -105,3 +96,4 @@ if __name__ == "__main__":
         logger.info("Скрипт розсилки успішно завершено")
     except Exception as e:
         logger.error(f"Критична помилка в скрипті розсилки: {e}")
+        exit(1)

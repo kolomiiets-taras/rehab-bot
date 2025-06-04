@@ -1,34 +1,53 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
+from pathlib import Path
 from config import app_config
 
-# Создаём директорию для логов, если она не существует
-os.makedirs(app_config.LOGS_PATH, exist_ok=True)
-log_file_path = os.path.join(app_config.LOGS_PATH, 'backend.log')
+# Визначаємо шлях для логів (з пріоритетом: змінна оточення > конфіг)
+log_dir = os.environ.get('LOG_DIR', str(app_config.LOGS_PATH))
+log_file = os.environ.get('LOG_FILE', 'backend.log')
 
-# Настройка форматировщика логов
+# Створюємо директорію для логів, якщо вона не існує
+try:
+    os.makedirs(log_dir, exist_ok=True)
+    log_file_path = os.path.join(log_dir, log_file)
+except (PermissionError, OSError) as e:
+    # Якщо не вдалося створити директорію логів, використовуємо директорію в домашньому каталозі
+    fallback_dir = os.path.join(str(Path.home()), "rehab_logs")
+    os.makedirs(fallback_dir, exist_ok=True)
+    log_file_path = os.path.join(fallback_dir, log_file)
+    print(f"Увага: не вдалося використати директорію {log_dir}, використовуємо {fallback_dir}")
+
+# Налаштування форматувальника логів
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-# Создаём логгер
+# Створюємо логер
 logger = logging.getLogger('rehab_bot_logger')
-logger.setLevel(logging.INFO)  # можно установить уровень DEBUG, если нужно больше деталей
+logger.setLevel(logging.INFO)
 
-# Обработчик для записи логов в файл с ежедневной ротацией в 00:00 и хранением за 7 дней
-file_handler = TimedRotatingFileHandler(
-    filename=log_file_path,
-    when='midnight',          # Ротация в полночь
-    interval=1,               # Интервал - один день
-    backupCount=7,            # Хранить файлы за последние 7 дней
-    encoding='utf-8'
-)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+# Видаляємо існуючі обробники, щоб уникнути дублювання
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
 
-# Обработчик для вывода логов в консоль
+try:
+    # Обробник для запису логів у файл з ротацією
+    file_handler = TimedRotatingFileHandler(
+        filename=log_file_path,
+        when='midnight',
+        interval=1,
+        backupCount=7,
+        encoding='utf-8'
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+except (PermissionError, OSError) as e:
+    print(f"Увага: не вдалося створити файловий обробник логів: {e}")
+
+# Обробник для виводу логів у консоль
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-# Пример использования логгера
-logger.info('Logger started')
+# Інформація про запуск логера
+print(f'Логер запущено. Шлях до файлу: {log_file_path}')
