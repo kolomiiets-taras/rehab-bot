@@ -23,7 +23,7 @@ from backend.routers import (
     index_router,
     motivation_router
 )
-from db.connector import create_db_and_tables
+from db.connector import create_db_and_tables, add_first_admin
 
 
 class ProxyHeadersMiddleware(BaseHTTPMiddleware):
@@ -44,6 +44,7 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     await create_db_and_tables()
+    await add_first_admin()
     yield
 
 
@@ -82,8 +83,5 @@ app.include_router(motivation_router, tags=["motivation"])
 
 if __name__ == "__main__":
     import uvicorn
-    import asyncio
-    from db.connector import add_first_admin
-    asyncio.run(add_first_admin())
 
     uvicorn.run(app, host="0.0.0.0", port=8000, proxy_headers=True)
