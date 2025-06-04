@@ -82,5 +82,8 @@ app.include_router(motivation_router, tags=["motivation"])
 
 if __name__ == "__main__":
     import uvicorn
+    import asyncio
+    from db.connector import add_first_admin
+    asyncio.run(add_first_admin())
 
     uvicorn.run(app, host="0.0.0.0", port=8000, proxy_headers=True)
