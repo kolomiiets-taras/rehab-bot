@@ -3,6 +3,7 @@ FROM python:3.12-slim
 
 # Встановлення системних залежностей
 RUN apt-get update && apt-get install -y \
+    ffmpeg \
     build-essential \
     libpq-dev \
     gettext \
