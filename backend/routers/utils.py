@@ -57,7 +57,7 @@ async def save_exercise_media(filename: str, content: bytes, exercise_id: int):
     allowed_formats += [fmt.upper() for fmt in allowed_formats]  # Добавляем верхний регистр
 
     # Конвертация если нужно
-    if file_path.suffix.lower() not in allowed_formats:
+    if file_path.suffix not in allowed_formats:
         try:
             file_path = convert_to_mp4(file_path)
         except Exception as e:
