@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form, Response, Depends
+from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 

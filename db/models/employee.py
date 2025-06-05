@@ -16,7 +16,7 @@ class Employee(Base):
     __tablename__ = "employee"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(20), unique=True, index=True)
+    email = Column(String(50), unique=True, index=True)
     password = Column(String(128))
     first_name = Column(String(128))
     last_name = Column(String(128))

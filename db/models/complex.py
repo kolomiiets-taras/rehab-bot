@@ -7,7 +7,7 @@ class Complex(Base):
     __tablename__ = "complex"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
+    name = Column(String(200), nullable=False)
 
     exercises = relationship("ComplexExercise", back_populates="complex", order_by="ComplexExercise.position")
 
