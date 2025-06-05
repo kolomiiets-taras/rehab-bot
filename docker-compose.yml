@@ -28,6 +28,7 @@ services:
       - .env
     volumes:
       - ./logs:/app/logs
+      - ./media:/app/backend/static/exercises_media
     depends_on:
       db:
         condition: service_healthy
