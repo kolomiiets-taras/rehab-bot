@@ -54,7 +54,7 @@ async def save_exercise_media(filename: str, content: bytes, exercise_id: int):
         buffer.write(content)
 
     # Конвертация если нужно
-    if file_path.suffix.lower() not in [".jpg", ".jpeg", ".png", ".gif", ".mp4"]:
+    if file_path.suffix.lower() not in [".jpg", ".jpeg", ".png", ".gif", ".mp4", ".MP4"]:
         try:
             file_path = convert_to_mp4(file_path)
         except Exception as e:

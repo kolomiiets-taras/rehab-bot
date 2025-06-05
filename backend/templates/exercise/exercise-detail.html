@@ -51,7 +51,7 @@
                             {% if exercise.media == 'processing' %}
                                 <img style="width: 100%; max-width: 500px;" src="{{ url_for('static', path='img/media_placeholder.png') }}"
                                      class="img-fluid mb-2 rounded" alt="preview">
-                            {% elif exercise.media.endswith('.mp4') %}
+                            {% elif exercise.media.endswith('.mp4') or exercise.media.endswith('.MP4') %}
                                 <video class="img-fluid mb-2 rounded" style="width: 100%; max-width: 500px;" height="120" controls>
                                     <source src="{{ url_for('static', path='exercises_media/' + exercise.media) }}"
                                             type="video/mp4">
