@@ -53,8 +53,11 @@ async def save_exercise_media(filename: str, content: bytes, exercise_id: int):
     with file_path.open("wb") as buffer:
         buffer.write(content)
 
+    allowed_formats = [".jpg", ".jpeg", ".png", ".gif", ".mp4"]
+    allowed_formats += [fmt.upper() for fmt in allowed_formats]  # Добавляем верхний регистр
+
     # Конвертация если нужно
-    if file_path.suffix.lower() not in [".jpg", ".jpeg", ".png", ".gif", ".mp4", ".MP4"]:
+    if file_path.suffix.lower() not in allowed_formats:
         try:
             file_path = convert_to_mp4(file_path)
         except Exception as e:
