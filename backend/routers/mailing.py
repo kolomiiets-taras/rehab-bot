@@ -10,11 +10,13 @@ from db.database import get_db
 from sqlalchemy import select, not_, exists
 from datetime import time
 from .utils import access_for, error_handler
-from logger import logger
+from logger import get_site_logger
 from db.models import Role, UserCourse, User, Course, CourseItem
 
 router = APIRouter(prefix="/mailing")
 templates = app_config.TEMPLATES
+
+logger = get_site_logger()
 
 
 @router.get("/")
@@ -73,17 +75,16 @@ async def create_mailing_page(request: Request, db: AsyncSession = Depends(get_d
 @access_for(Role.ADMIN, Role.DOCTOR)
 @error_handler('mailing')
 async def add_mailing(
-    request: Request,
-    users: list[int] = Form(...),
-    course_id_str: str = Form(...),
-    course_name: str = Form(...),
-    items_json: str = Form(None),
-    mailing_time: time = Form(...),
-    mailing_days: list[int] = Form(...),
-    iterations: int = Form(...),
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        users: list[int] = Form(...),
+        course_id_str: str = Form(...),
+        course_name: str = Form(...),
+        items_json: str = Form(None),
+        mailing_time: time = Form(...),
+        mailing_days: list[int] = Form(...),
+        iterations: int = Form(...),
+        db: AsyncSession = Depends(get_db)
 ):
-
     if items := json.loads(items_json or "[]"):
         course = Course(name=course_name or 'Без Назви')
         db.add(course)
@@ -138,9 +139,9 @@ async def add_mailing(
 @access_for(Role.ADMIN, Role.DOCTOR)
 @error_handler('mailing')
 async def delete_mailing(
-    request: Request,
-    mailing_id: int,
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        mailing_id: int,
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(UserCourse).where(UserCourse.id == mailing_id))
     user_course = result.scalar_one_or_none()
@@ -161,9 +162,9 @@ async def delete_mailing(
 @access_for(Role.ADMIN, Role.DOCTOR)
 @error_handler('mailing')
 async def stop_mailing(
-    request: Request,
-    mailing_id: int,
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        mailing_id: int,
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(UserCourse).where(UserCourse.id == mailing_id))
     user_course = result.scalar_one_or_none()
@@ -184,9 +185,9 @@ async def stop_mailing(
 @access_for(Role.ADMIN, Role.DOCTOR)
 @error_handler('mailing')
 async def start_mailing(
-    request: Request,
-    mailing_id: int,
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        mailing_id: int,
+        db: AsyncSession = Depends(get_db)
 ):
     # 1. Найти рассылку по ID
     result = await db.execute(select(UserCourse).where(UserCourse.id == mailing_id))
@@ -228,11 +229,11 @@ async def start_mailing(
 @access_for(Role.ADMIN, Role.DOCTOR)
 @error_handler('mailing')
 async def edit_mailing(
-    request: Request,
-    mailing_id: int,
-    mailing_time: time = Form(...),
-    mailing_days: list[int] = Form(...),
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        mailing_id: int,
+        mailing_time: time = Form(...),
+        mailing_days: list[int] = Form(...),
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(UserCourse).where(UserCourse.id == mailing_id))
     user_course = result.scalar_one_or_none()

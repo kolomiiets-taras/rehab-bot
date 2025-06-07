@@ -5,12 +5,15 @@ from sqlalchemy import select
 
 from config import app_config
 from db import async_session
-from logger import logger
+from logger import get_site_logger
+
 from db.models import Exercise
 from db.models.employee import Role
 import subprocess
 from pathlib import Path
 from functools import wraps
+
+logger = get_site_logger()
 
 
 def access_for(*allowed_roles):
@@ -26,7 +29,9 @@ def access_for(*allowed_roles):
                 return await func(request, *args, **kwargs)
             else:
                 raise HTTPException(status_code=403, detail="Access denied")
+
         return wrapper
+
     return decorator
 
 
@@ -81,5 +86,7 @@ def error_handler(path: str):
             except Exception as e:
                 logger.error(f"Error in {path}: {e}")
                 return RedirectResponse(url=f"/{path}?error=1", status_code=303)
+
         return wrapper
+
     return decorator

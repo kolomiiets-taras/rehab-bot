@@ -1,7 +1,8 @@
 import time
 from fastapi import Request
-from logger import logger
+from logger import get_site_logger
 
+logger = get_site_logger()
 
 async def log_middleware(request: Request, call_next):
     """ Middleware for logging requests """

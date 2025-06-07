@@ -1,4 +1,16 @@
 services:
+  init-logs:
+    image: alpine:latest
+    command: >
+      sh -c "
+        mkdir -p /logs/bot /logs/site /logs/scripts &&
+        chmod -R 777 /logs &&
+        echo 'Created:' &&
+        ls -la /logs/
+      "
+    volumes:
+      - ./logs:/logs
+
   db:
     container_name: spina_postgres
     image: postgres:17-alpine
@@ -30,6 +42,8 @@ services:
       - ./logs:/app/logs
       - ./media:/app/backend/static/exercises_media
     depends_on:
+      init-logs:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
 
@@ -42,7 +56,10 @@ services:
       - .env
     volumes:
       - ./logs:/app/logs
+      - ./media:/app/backend/static/exercises_media
     depends_on:
+      init-logs:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
 

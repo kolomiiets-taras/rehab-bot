@@ -9,4 +9,5 @@ def with_session(handler):
         async with async_session() as session:
             kwargs['session'] = session
             return await handler(*args, **kwargs)
+
     return wrapper

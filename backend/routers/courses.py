@@ -7,13 +7,15 @@ import json
 
 from config import app_config
 from db.database import get_db
-from logger import logger
+from logger import get_site_logger
 from db.models.course import Course
 from db.models import CourseItem, Role
 from backend.routers.utils import error_handler, access_for
 
 router = APIRouter(prefix="/courses")
 templates = app_config.TEMPLATES
+
+logger = get_site_logger()
 
 
 @router.get("/")
@@ -83,10 +85,10 @@ async def course_detail(request: Request, course_id: int, db: AsyncSession = Dep
 @access_for(Role.ADMIN)
 @error_handler('courses')
 async def add_course(
-    request: Request,
-    name: str = Form(...),
-    items_json: str = Form(None),
-    db: AsyncSession = Depends(get_db),
+        request: Request,
+        name: str = Form(...),
+        items_json: str = Form(None),
+        db: AsyncSession = Depends(get_db),
 ):
     items = json.loads(items_json or "[]")
 
@@ -110,11 +112,11 @@ async def add_course(
 @access_for(Role.ADMIN)
 @error_handler('courses')
 async def edit_course(
-    request: Request,
-    course_id: int,
-    name: str = Form(...),
-    items_json: str = Form(None),
-    db: AsyncSession = Depends(get_db),
+        request: Request,
+        course_id: int,
+        name: str = Form(...),
+        items_json: str = Form(None),
+        db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Course).where(Course.id == course_id))
     course = result.scalar_one_or_none()

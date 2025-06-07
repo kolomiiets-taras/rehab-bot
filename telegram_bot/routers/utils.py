@@ -2,8 +2,11 @@ from functools import wraps
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from logger import logger
+from logger import get_bot_logger
+
 from db.models import DailySession, DailySessionState
+
+logger = get_bot_logger()
 
 
 def validate_pulse(pulse: str) -> bool:
@@ -51,5 +54,5 @@ def error_logger(func):
         except Exception as e:
             logger.error(f"Error in Telegram Bot {func.__name__}: {e}")
             raise e
-    return wrapper
 
+    return wrapper

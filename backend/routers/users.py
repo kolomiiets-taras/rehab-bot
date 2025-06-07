@@ -10,11 +10,13 @@ from sqlalchemy import select, or_, String, func
 from datetime import datetime, date, timedelta
 from .utils import access_for, error_handler
 from backend.constants import WELLBEING_EMOJI_MAP
-from logger import logger
+from logger import get_site_logger
 
 router = APIRouter(prefix="/users")
 templates = app_config.TEMPLATES
 ITEMS_PER_PAGE = 10
+
+logger = get_site_logger()
 
 
 @router.get("/")
@@ -170,13 +172,13 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
 @error_handler('users')
 async def add_user(
-    request: Request,
-    telegram_id: int = Form(...),
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    phone: str = Form(None),
-    birthday: date = Form(None),
-    db: AsyncSession = Depends(get_db),
+        request: Request,
+        telegram_id: int = Form(...),
+        first_name: str = Form(...),
+        last_name: str = Form(...),
+        phone: str = Form(None),
+        birthday: date = Form(None),
+        db: AsyncSession = Depends(get_db),
 ):
     user = User(
         telegram_id=telegram_id,
@@ -210,13 +212,13 @@ async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
 @error_handler('users')
 async def edit_user(
-    request: Request,
-    user_id: int,
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    phone: str = Form(None),
-    birthday: date = Form(None),
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        user_id: int,
+        first_name: str = Form(...),
+        last_name: str = Form(...),
+        phone: str = Form(None),
+        birthday: date = Form(None),
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()

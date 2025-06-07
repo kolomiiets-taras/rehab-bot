@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from db.session_wraper import with_session
-from db.models import(
+from db.models import (
     DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course, DailySessionState, MotivationMessage
 )
 from telegram_bot.keyboards.session_keyboards import wellbeing_keyboard, yes_no_keyboard

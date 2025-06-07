@@ -97,7 +97,8 @@ async def export_patients_csv(request: Request, db: AsyncSession = Depends(get_d
 
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(["ID", "Telegram ID", "Імʼя", "Прізвище", "Телефон", "Поточний курс", "Дата реєстрації"])  # заголовки
+    writer.writerow(
+        ["ID", "Telegram ID", "Імʼя", "Прізвище", "Телефон", "Поточний курс", "Дата реєстрації"])  # заголовки
 
     for user in users:
         writer.writerow([

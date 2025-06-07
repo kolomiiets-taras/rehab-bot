@@ -4,13 +4,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from db.database import get_db
-from logger import logger
+from logger import get_site_logger
+
 from db.models import MotivationMessage, Role
 from config import app_config
 from backend.routers.utils import access_for, error_handler
 
 router = APIRouter(prefix="/motivation")
 templates = app_config.TEMPLATES
+
+logger = get_site_logger()
 
 
 @router.get("/")
@@ -35,7 +38,8 @@ async def create_message(request: Request, message: str = Form(...), db: AsyncSe
 @router.post("/edit/{message_id}")
 @access_for(Role.ADMIN)
 @error_handler('motivation')
-async def update_message(request: Request, message_id: int, message: str = Form(...), db: AsyncSession = Depends(get_db)):
+async def update_message(request: Request, message_id: int, message: str = Form(...),
+                         db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(MotivationMessage).where(MotivationMessage.id == message_id))
     msg = result.scalar_one_or_none()
     if msg:

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends, UploadFile, HTTPException, File
+from fastapi import APIRouter, Request, Form, Depends, UploadFile, File
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
 from config import app_config
 from db.database import get_db
-from logger import logger
+from logger import get_site_logger
 from db.models import Role
 from db.models.exercise import Exercise
 from fastapi.background import BackgroundTasks
@@ -14,6 +14,8 @@ from backend.routers.utils import save_exercise_media, access_for, error_handler
 
 router = APIRouter(prefix="/exercises")
 templates = app_config.TEMPLATES
+
+logger = get_site_logger()
 
 
 @router.get("/")
@@ -47,9 +49,9 @@ async def exercises_list(request: Request, db: AsyncSession = Depends(get_db)):
 @error_handler('exercises')
 @access_for(Role.ADMIN, Role.DOCTOR)
 async def exercise_detail(
-    request: Request,
-    exercise_id: int,
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        exercise_id: int,
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
@@ -69,12 +71,12 @@ async def exercise_detail(
 @access_for(Role.ADMIN)
 @error_handler('exercises')
 async def add_exercise(
-    request: Request,
-    background_tasks: BackgroundTasks,
-    title: str = Form(...),
-    media: UploadFile = Form(...),
-    text: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        background_tasks: BackgroundTasks,
+        title: str = Form(...),
+        media: UploadFile = Form(...),
+        text: str = Form(...),
+        db: AsyncSession = Depends(get_db)
 ):
     exercise = Exercise(title=title, text=text)
     db.add(exercise)
@@ -113,13 +115,13 @@ async def delete_exercise(request: Request, exercise_id: int, db: AsyncSession =
 @access_for(Role.ADMIN)
 @error_handler('exercises')
 async def edit_exercise(
-    request: Request,
-    exercise_id: int,
-    background_tasks: BackgroundTasks,
-    title: str = Form(...),
-    text: str = Form(...),
-    media: UploadFile = File(None),
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        exercise_id: int,
+        background_tasks: BackgroundTasks,
+        title: str = Form(...),
+        text: str = Form(...),
+        media: UploadFile = File(None),
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()

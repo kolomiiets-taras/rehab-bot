@@ -27,5 +27,5 @@ async def start_handler(message: Message, session: AsyncSession) -> None:
         return
 
     await message.answer(
-            _('start.welcome_new'), reply_markup=main_menu_registration_keyboard(), parse_mode='HTML'
-        )
+        _('start.welcome_new'), reply_markup=main_menu_registration_keyboard(), parse_mode='HTML'
+    )

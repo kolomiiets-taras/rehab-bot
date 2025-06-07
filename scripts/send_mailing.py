@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import asyncio
 from datetime import date, datetime, timedelta
@@ -7,8 +6,9 @@ from datetime import date, datetime, timedelta
 if 'POSTGRES_HOST' not in os.environ:
     os.environ['POSTGRES_HOST'] = 'localhost'
 
-# Імпортуємо логер
-from logger import logger
+# Імпортуємо логер для скрипта
+from logger import get_script_logger
+logger = get_script_logger('send_mailing')
 
 # Імпортуємо необхідні модулі для роботи з базою даних
 from sqlalchemy import select, and_, or_

@@ -1,4 +1,5 @@
-from logger import logger
+from logger import get_bot_logger
+logger = get_bot_logger()
 from telegram_bot.bot import bot
 from aiogram.utils.markdown import html_decoration as hd
 from config import app_config

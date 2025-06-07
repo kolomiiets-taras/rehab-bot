@@ -9,9 +9,11 @@ from passlib.hash import bcrypt
 from config import app_config
 from .utils import error_handler
 from db.database import get_db
-from logger import logger
+from logger import get_site_logger
 
 router = APIRouter()
+
+logger = get_site_logger()
 
 
 @router.get("/login")
@@ -22,10 +24,10 @@ async def login_form(request: Request):
 @router.post("/login")
 @error_handler('login')
 async def login_submit(
-    request: Request,
-    email: str = Form(...),
-    password: str = Form(...),
-    db: AsyncSession = Depends(get_db)
+        request: Request,
+        email: str = Form(...),
+        password: str = Form(...),
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(Employee).where(Employee.email == email))
     user = result.scalar_one_or_none()

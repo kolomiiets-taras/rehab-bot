@@ -4,7 +4,8 @@ import sys
 
 from aiogram import Dispatcher
 
-from logger import logger
+from logger import get_bot_logger
+logger = get_bot_logger()
 from telegram_bot.bot import bot
 from telegram_bot.middlewares.localization import locale_middleware
 from telegram_bot.routers import (

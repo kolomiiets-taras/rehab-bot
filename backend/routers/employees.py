@@ -10,10 +10,12 @@ from config import app_config
 from db.database import get_db
 from db.models.employee import Employee, Role
 from .utils import access_for, error_handler
-from logger import logger
+from logger import get_site_logger
 
 router = APIRouter(prefix="/employees")
 templates = app_config.TEMPLATES
+
+logger = get_site_logger()
 
 
 @router.get("/")
@@ -46,14 +48,14 @@ async def employees_list(request: Request, db: AsyncSession = Depends(get_db)):
 @access_for(Role.ADMIN)
 @error_handler('employees')
 async def edit_employee(
-    request: Request,
-    employee_id: int,
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    email: str = Form(...),
-    phone: str = Form(...),
-    role: int = Form(...),
-    db: AsyncSession = Depends(get_db),
+        request: Request,
+        employee_id: int,
+        first_name: str = Form(...),
+        last_name: str = Form(...),
+        email: str = Form(...),
+        phone: str = Form(...),
+        role: int = Form(...),
+        db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Employee).where(Employee.id == employee_id))
     employee = result.scalar_one_or_none()
@@ -90,14 +92,14 @@ async def delete_employee(request: Request, employee_id: int, db: AsyncSession =
 @access_for()
 @error_handler('employees')
 async def add_employee(
-    request: Request,
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    email: str = Form(...),
-    phone: str = Form(...),
-    password: str = Form(...),
-    role: int = Form(...),
-    db: AsyncSession = Depends(get_db),
+        request: Request,
+        first_name: str = Form(...),
+        last_name: str = Form(...),
+        email: str = Form(...),
+        phone: str = Form(...),
+        password: str = Form(...),
+        role: int = Form(...),
+        db: AsyncSession = Depends(get_db),
 ):
     hashed_password = bcrypt.hash(password)
     new_employee = Employee(

@@ -8,7 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.session_wraper import with_session
-from logger import logger
+from logger import get_bot_logger
+
 from db.models import User
 from telegram_bot.keyboards.main_menu import main_menu_keyboard
 from telegram_bot.middlewares.localization import i18n
@@ -18,6 +19,8 @@ from telegram_bot.routers.utils import error_logger
 
 router = Router(name=__name__)
 _ = i18n.gettext
+
+logger = get_bot_logger()
 
 
 class Registration(StatesGroup):
