@@ -43,8 +43,8 @@ async def send_mailing(session: AsyncSession) -> None:
 
     filters = and_(
         UserCourse.finished == False,
-        time_filter,
-        UserCourse.mailing_days.any(now.isoweekday())
+        # time_filter,
+        # UserCourse.mailing_days.any(now.isoweekday())
     )
 
     try:

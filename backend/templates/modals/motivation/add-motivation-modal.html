@@ -2,7 +2,7 @@
 <div class="modal fade" id="addMotivationModal" tabindex="-1" role="dialog" aria-labelledby="addMotivationModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form method="post" action="/motivation/add">
+        <form method="post" id="addMotivationForm" action="/motivation/add">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addMotivationModalLabel">Додати мотиваційне повідомлення</h5>
@@ -13,7 +13,8 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Текст</label>
-                        <textarea name="message" class="form-control" rows="5" required></textarea>
+                        <div id="editor-add" class="editor-quill" data-target="text-input-add" data-form-id="addMotivationForm"></div>
+                        <input type="hidden" name="message" id="text-input-add">
                     </div>
                 </div>
                 <div class="modal-footer">

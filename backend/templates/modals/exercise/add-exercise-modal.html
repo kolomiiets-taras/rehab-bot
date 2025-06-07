@@ -2,7 +2,7 @@
 <div class="modal fade" id="addExerciseModal" tabindex="-1" role="dialog" aria-labelledby="addExerciseModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form method="post" enctype="multipart/form-data" action="/exercises/add">
+        <form id="addExerciseForm" method="post" enctype="multipart/form-data" action="/exercises/add">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addExerciseModalLabel">Додати вправу</h5>
@@ -17,7 +17,8 @@
                     </div>
                     <div class="form-group">
                         <label>Текст</label>
-                        <textarea name="text" class="form-control" rows="5" required></textarea>
+                        <div id="editor-add" class="editor-quill" data-target="text-input-add" data-form-id="addExerciseForm"></div>
+                        <input type="hidden" name="text" id="text-input-add">
                     </div>
                     <div class="form-group">
                         <label>Медіа файл</label>

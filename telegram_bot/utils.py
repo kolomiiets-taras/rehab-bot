@@ -5,12 +5,37 @@ from config import app_config
 from aiogram.types import Message, FSInputFile
 from telegram_bot.keyboards.session_keyboards import skip_start_keyboard, next_step_keyboard, finish_keyboard
 from telegram_bot.middlewares.localization import i18n
+import re
+
+
+def clean_html_for_telegram(html: str) -> str:
+    # Заменяем <br> и <br/> на перевод строки
+    html = re.sub(r'<br\s*/?>', '\n', html, flags=re.IGNORECASE)
+
+    # Заменяем <p> на новую строку (с обоих сторон)
+    html = re.sub(r'</p>\s*<p>', '\n', html)  # между параграфами
+    html = re.sub(r'<p[^>]*>', '', html)      # открывающие теги <p>
+    html = re.sub(r'</p>', '\n', html)        # закрывающие теги </p>
+
+    # Удаляем все теги, кроме разрешённых
+    allowed_tags = ['b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'code', 'span']
+    html = re.sub(r'</?(?!' + '|'.join(allowed_tags) + r')\w+[^>]*>', '', html)
+
+    # Удаляем span, кроме тех у которых class="tg-spoiler"
+    html = re.sub(r'<span(?![^>]*class="tg-spoiler")[^>]*>(.*?)</span>', r'\1', html)
+
+    # Очистка лишних пробелов и пустых строк
+    html = re.sub(r'[ \t]+\n', '\n', html)
+    html = re.sub(r'\n[ \t]+', '\n', html)
+    html = re.sub(r'\n{3,}', '\n\n', html)
+
+    return html.strip()
 
 
 async def send_exercise(
     message: Message, session_id: int, title: str, text: str, media: str | None = None, last: bool = False
 ) -> None:
-    message_text = f"🔹<b>{hd.quote(title)}</b>🔹\n\n{hd.quote(text)}"
+    message_text = f"🔹<b>{hd.quote(title)}</b>🔹\n\n{clean_html_for_telegram(text)}"
     keyboard = finish_keyboard if last else next_step_keyboard
     kwargs = {'caption': message_text, 'parse_mode': 'HTML', 'reply_markup': keyboard(session_id=session_id)}
 

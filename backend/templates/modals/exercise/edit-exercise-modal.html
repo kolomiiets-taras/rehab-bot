@@ -2,7 +2,7 @@
 <div class="modal fade" id="editExerciseModal{{ exercise.id }}" tabindex="-1" role="dialog"
      aria-labelledby="editExerciseModalLabel{{ exercise.id }}" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form method="post" action="/exercises/edit/{{ exercise.id }}" enctype="multipart/form-data">
+        <form method="post" id="editExerciseForm-{{ exercise.id }}" action="/exercises/edit/{{ exercise.id }}" enctype="multipart/form-data">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editExerciseModalLabel{{ exercise.id }}">Редагувати вправу</h5>
@@ -17,7 +17,10 @@
                     </div>
                     <div class="form-group">
                         <label>Текст</label>
-                        <textarea name="text" class="form-control" rows="5">{{ exercise.text }}</textarea>
+                        <div id="editor-{{ exercise.id }}" class="editor-quill" data-form-id="editExerciseForm-{{ exercise.id }}" data-target="text-input-{{ exercise.id }}">
+                          {{ exercise.text|safe }}
+                        </div>
+                        <input type="hidden" name="text" id="text-input-{{ exercise.id }}">
                     </div>
                     <div class="form-group">
                         <label>Медіа файл</label>

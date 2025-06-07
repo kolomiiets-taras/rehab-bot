@@ -2,7 +2,7 @@
 <div class="modal fade" id="editMotivationModal{{ message.id }}" tabindex="-1" role="dialog"
      aria-labelledby="editMotivationModalLabel{{ message.id }}" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form method="post" action="/motivation/edit/{{ message.id }}" enctype="multipart/form-data">
+        <form method="post" id="editMotivationForm-{{ message.id }}" action="/motivation/edit/{{ message.id }}">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editMotivationModalLabel{{ message.id }}">Редагувати повідомлення</h5>
@@ -13,7 +13,10 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Текст</label>
-                        <textarea name="message" class="form-control" rows="5">{{ message.message }}</textarea>
+                        <div id="editor-{{ message.id }}" class="editor-quill" data-target="text-input-{{ message.id }}" data-form-id="editMotivationForm-{{ message.id }}">
+                          {{ message.message|safe }}
+                        </div>
+                        <input type="hidden" name="message" id="text-input-{{ message.id }}">
                     </div>
                 </div>
                 <div class="modal-footer">
