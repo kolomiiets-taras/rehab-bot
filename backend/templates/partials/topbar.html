@@ -35,19 +35,27 @@
         <!-- Nav Item - Alerts -->
         <li class="nav-item dropdown no-arrow mx-1">
             <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="loadAppointments(true)">
                 <i class="fas fa-bell fa-fw"></i>
                 <!-- Counter - Alerts -->
                 <span class="badge badge-danger badge-counter" id="alert-badge"></span>
             </a>
             <!-- Dropdown - Alerts -->
             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                 aria-labelledby="alertsDropdown" id="alerts-list">
-                <h6 class="dropdown-header">
-                    Запити на запис
-                </h6>
-                <div id="appointments-container">
+                 aria-labelledby="alertsDropdown" id="alerts-list" style="width: 350px;">
+                <h6 class="dropdown-header">Запити на запис</h6>
+
+                <div id="appointments-container" style="max-height: 300px; overflow-y: auto;">
                     <!-- Сюди буде вставлено JS-ом -->
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <div class="text-center">
+                    <button class="btn btn-sm btn-outline-primary m-2"
+                            onclick="event.stopPropagation(); toggleAppointmentsView(this)">
+                        Показати оброблені
+                    </button>
                 </div>
             </div>
         </li>

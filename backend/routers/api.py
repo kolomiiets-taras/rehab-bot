@@ -47,12 +47,15 @@ async def get_all_users(request: Request, db: AsyncSession = Depends(get_db)):
     ]
 
 
-@router.get("/appointments")
+@router.get("/appointments/{pending}")
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
-async def get_pending_appointments(request: Request, db: AsyncSession = Depends(get_db)):
+async def get_appointments(request: Request, pending: str, db: AsyncSession = Depends(get_db)):
+    if pending.lower() not in ["true", "false"]:
+        raise HTTPException(status_code=400, detail="Invalid 'pending' parameter. Use 'true' or 'false'.")
+    is_pending = pending.lower() == "true"
     result = await db.execute(
         select(Appointment)
-        .where(Appointment.status == AppointmentStatus.PENDING)
+        .where(Appointment.status == (AppointmentStatus.PENDING if is_pending else AppointmentStatus.CONFIRMED))
         .options(selectinload(Appointment.user))
         .order_by(Appointment.created_at.desc())
     )
@@ -84,7 +87,7 @@ async def confirm_appointment(request: Request, appointment_id: int, db: AsyncSe
 
 
 @router.get("/export/users", name="export_patients_csv")
-@access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
+@access_for(Role.ADMIN, Role.MANAGER)
 async def export_patients_csv(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(User)
@@ -98,7 +101,8 @@ async def export_patients_csv(request: Request, db: AsyncSession = Depends(get_d
     output = StringIO()
     writer = csv.writer(output)
     writer.writerow(
-        ["ID", "Telegram ID", "Імʼя", "Прізвище", "Телефон", "Поточний курс", "Дата реєстрації"])  # заголовки
+        ["ID", "Telegram ID", "Імʼя", "Прізвище", "Телефон", "Поточний курс", "Дата реєстрації"]
+    )
 
     for user in users:
         writer.writerow([

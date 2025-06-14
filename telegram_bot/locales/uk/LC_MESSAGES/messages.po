@@ -71,7 +71,7 @@ msgid "keyboards.appointment"
 msgstr "📅 Записатись на прийом"
 
 msgid "keyboards.support"
-msgstr "⚙️ Технічка підтримка"
+msgstr "⚙️ Технічна підтримка"
 
 # session
 
