@@ -8,6 +8,8 @@
                 <div tabindex="0" class="card
                     {% if day.status == 'done' %} border-left-success
                     {% elif day.status == 'missed' %} border-left-danger
+                    {% elif day.status == 'in_progress' %} border-left-primary
+                    {% elif day.status == 'sent' %} border-left-info
                     {% else %} border-left-secondary {% endif %}
                     {% if day.current %} bg-info text-white {% endif %}
                     shadow h-100 py-2"
@@ -20,8 +22,9 @@
                          <strong>Статус:</strong>
                             {% if day.status == 'done' %} Виконано
                             {% elif day.status == 'missed' %} Пропущено
+                            {% elif day.status == 'in_progress' %} В процесі
+                            {% elif day.status == 'sent' %} Відправлено
                             {% else %} Не відправлено {% endif %}<br>
-                         <strong>Вправа/комплекс:</strong> {{ day.exercise }}<br>
                          <strong>Пульс до:</strong> {{ day.pulse_before }}<br>
                          <strong>Пульс після:</strong> {{ day.pulse_after }}<br>
                          <strong>Самопочуття до:</strong> {{ day.wellbeing_before }}<br>

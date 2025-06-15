@@ -29,7 +29,6 @@ class CourseItem(Base):
     course = relationship("Course", back_populates="items")
     complex = relationship("Complex")
     exercise = relationship("Exercise")
-    sessions = relationship("DailySession", back_populates="course_item", cascade="all, delete-orphan")
 
     @property
     def is_exercise(self) -> bool:

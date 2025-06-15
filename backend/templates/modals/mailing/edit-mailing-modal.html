@@ -42,6 +42,20 @@
                             {% endfor %}
                         </div>
                     </div>
+
+                    <!-- Дата завершення -->
+                    <div class="form-group">
+                        <label for="end-date-{{ mailing.id }}">Дата завершення курсу</label>
+                        <input type="text"
+                               class="form-control end-date"
+                               id="end-date-{{ mailing.id }}"
+                               name="end_date"
+                               required
+                               placeholder="Оберіть дату"
+                               value="{{ mailing.end_date.strftime('%Y-%m-%d') }}">
+                        <small class="form-text text-muted">Доступні лише дні, які відповідають обраним дням.</small>
+                    </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
                         <button type="submit" class="btn btn-primary">Зберегти зміни</button>

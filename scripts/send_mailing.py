@@ -60,10 +60,8 @@ async def send_mailing(session: AsyncSession) -> None:
 
         for user_course in user_courses:
             try:
-                current_item = user_course.course.items[user_course.current_item_index]
                 daily_session = DailySession(
                     user_course_id=user_course.id,
-                    course_item_id=current_item.id,
                     date=date.today(),
                     position=user_course.current_position,
                     state=DailySessionState.SENT
@@ -77,7 +75,7 @@ async def send_mailing(session: AsyncSession) -> None:
                     user_course.user.language,
                     course_title=user_course.course.name,
                     session_number=user_course.current_position + 1,
-                    total_sessions=user_course.course.items_count * user_course.iterations
+                    total_sessions=user_course.sessions_count
                 )
                 logger.info(
                     f"Розсилка відправлена для користувача {user_course.user.telegram_id}, сесія {daily_session.id}")

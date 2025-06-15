@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import IntEnum
 
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Boolean, Text, Time, BigInteger, ARRAY
@@ -6,6 +6,14 @@ from sqlalchemy.orm import relationship
 
 from config import app_config
 from db import Base
+
+
+class DailySessionState(IntEnum):
+    NOT_SENT = 0
+    SENT = 1
+    IN_PROGRESS = 2
+    FINISHED = 3
+    SKIPPED = 4
 
 
 class User(Base):
@@ -31,13 +39,11 @@ class UserCourse(Base):
     user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     course_id = Column(Integer, ForeignKey("course.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
-    progress = Column(Text, nullable=True)
     current_position = Column(Integer, nullable=False, default=0)
     finished = Column(Boolean, nullable=True, default=False)
     mailing_time = Column(Time, nullable=True)
     mailing_days = Column(ARRAY(Integer), nullable=False, default=lambda: [])
-    iterations = Column(Integer, nullable=False, default=1)
-    current_iteration = Column(Integer, nullable=False, default=1)
+    end_date = Column(Date, nullable=False)
 
     user = relationship("User", back_populates="courses")
     course = relationship("Course", back_populates="users")
@@ -52,17 +58,25 @@ class UserCourse(Base):
         return ', '.join([mapping[day] for day in self.mailing_days if day in mapping])
 
     @property
-    def current_item_index(self) -> int:
-        """Calculate the relative position in the current iteration."""
-        return self.current_position % self.course.items_count
+    def sessions_count(self) -> int:
+        if not self.mailing_days or not self.created_at or not self.end_date:
+            return 0
 
+        count = 0
+        current_date = self.created_at.date()
+        while current_date <= self.end_date:
+            weekday = current_date.isoweekday()  # 1 = Monday, ..., 7 = Sunday
+            if weekday in self.mailing_days:
+                count += 1
+            current_date += timedelta(days=1)
+        return count
 
-class DailySessionState(IntEnum):
-    NOT_SENT = 0
-    SENT = 1
-    IN_PROGRESS = 2
-    FINISHED = 3
-    SKIPPED = 4
+    @property
+    def sessions_statuses(self) -> list[DailySessionState]:
+        """Returns the statuses of all sessions in the course."""
+        sessions = [session.state for session in self.sessions]
+        sessions += [DailySessionState.NOT_SENT] * (self.sessions_count - len(sessions))
+        return sessions
 
 
 class DailySession(Base):
@@ -70,7 +84,6 @@ class DailySession(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_course_id = Column(Integer, ForeignKey("user_course.id", ondelete="CASCADE"), nullable=False)
-    course_item_id = Column(Integer, ForeignKey("course_item.id", ondelete="CASCADE"), nullable=False)
     state = Column(Integer, nullable=False, default=DailySessionState.NOT_SENT)
     date = Column(Date, nullable=False)
     position = Column(Integer, nullable=False, default=0)
@@ -81,4 +94,3 @@ class DailySession(Base):
     wellbeing_after = Column(Integer, nullable=True)
 
     user_course = relationship("UserCourse", back_populates="sessions")
-    course_item = relationship("CourseItem", back_populates="sessions")

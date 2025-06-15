@@ -60,7 +60,7 @@ async def users_list(request: Request, db: AsyncSession = Depends(get_db)):
 
 @router.get("/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
-@error_handler('users')
+# @error_handler('users')
 async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if not user:
@@ -71,14 +71,7 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
         select(UserCourse).order_by(UserCourse.created_at.desc())
         .where(UserCourse.user_id == user_id)
         .options(
-            selectinload(UserCourse.course)
-            .selectinload(Course.items),  # сначала items
-            selectinload(UserCourse.course)
-            .selectinload(Course.items)
-            .selectinload(CourseItem.complex),
-            selectinload(UserCourse.course)
-            .selectinload(Course.items)
-            .selectinload(CourseItem.exercise),
+            selectinload(UserCourse.course),
             selectinload(UserCourse.sessions)
         )
     )
@@ -108,24 +101,27 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
     }
 
     course_days = []
-    if user_course and user_course.progress:
+    if user_course and user_course.sessions_statuses:
         start_date = user_course.created_at.date()
-        progress_bits = user_course.progress.strip()
         allowed_weekdays = set(user_course.mailing_days)  # Наприклад: {1, 3, 5}
         calendar_dates = []
 
-        while len(calendar_dates) < len(user_course.progress):
+        while len(calendar_dates) < user_course.sessions_count:
             if start_date.isoweekday() in allowed_weekdays:
                 calendar_dates.append(start_date)
             start_date += timedelta(days=1)
 
-        for i, bit in enumerate(progress_bits):
+        for i, bit in enumerate(user_course.sessions_statuses):
             match bit:
-                case "0":
+                case 0:
                     status = 'not_sent'
-                case "1":
+                case 1:
+                    status = 'sent'
+                case 2:
+                    status = 'in_progress'
+                case 3:
                     status = 'done'
-                case "2":
+                case 4:
                     status = 'missed'
                 case _:
                     status = 'missed'
@@ -134,23 +130,24 @@ async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends
             pulse_after = '-'
             wellbeing_before = '-'
             wellbeing_after = '-'
+            session = None
 
             if sessions and status in ['done', 'missed']:
-                pulse_before = sessions[i].pulse_before or '-'
-                pulse_after = sessions[i].pulse_after or '-'
-                wellbeing_before = sessions[i].wellbeing_before or '-'
-                wellbeing_after = sessions[i].wellbeing_after or '-'
+                session = sessions[i]
+                pulse_before = session.pulse_before or '-'
+                pulse_after = session.pulse_after or '-'
+                wellbeing_before = session.wellbeing_before or '-'
+                wellbeing_after = session.wellbeing_after or '-'
 
-            item_index = i % user_course.course.items_count
-            if user_course.course.items[item_index].is_exercise:
-                exercise_title = user_course.course.items[item_index].exercise.title
-            else:
-                exercise_title = user_course.course.items[item_index].complex.name
+            try:
+                calendar_date = calendar_dates[i].strftime("%d-%m")
+            except IndexError:
+                calendar_date = session.date.strftime("%d-%m") if session else '-'
+
             course_days.append({
-                "date": calendar_dates[i].strftime("%d-%m"),
+                "date": calendar_date,
                 "status": status,
                 "current": (i == user_course.current_position),
-                "exercise": exercise_title,
                 "pulse_before": pulse_before,
                 "pulse_after": pulse_after,
                 "wellbeing_before": WELLBEING_EMOJI_MAP.get(wellbeing_before, '-'),

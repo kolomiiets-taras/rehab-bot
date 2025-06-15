@@ -123,8 +123,9 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Кількість повторів</label>
-                                        <input type="number" name="iterations" class="form-control" value="1" required>
+                                        <label for="end-date">Дата завершення курсу</label>
+                                        <input type="text" id="end-date" name="end_date" class="form-control" required placeholder="Оберіть дату">
+                                        <small class="form-text text-muted">Доступні лише дні, які відповідають обраним дням тижня.</small>
                                     </div>
                                     <button type="submit" class="btn btn-success mt-3">Створити розсилку</button>
                                 </div>
@@ -140,35 +141,9 @@
 
 {% block scripts %}
     {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- JS для роботи Select2, драг-н-дропу і оновлення списку -->
     <script src="{{ url_for('static', path='js/add-course-modal.js') }}"></script>
-
-    <script>
-        function validateDaysSelected() {
-            const checkboxes = document.querySelectorAll('input[name="mailing_days"]:checked');
-            if (checkboxes.length === 0) {
-                alert("Будь ласка, оберіть хоча б один день для розсилки.");
-                return false;
-            }
-            return true;
-        }
-        $(document).ready(function () {
-            $('#user-select').select2({
-                placeholder: 'Виберіть пацієнтів…'
-            });
-        });
-        $(document).ready(function () {
-            $('#course-select').select2({
-                placeholder: 'Виберіть курс…',
-                allowClear: true,
-                theme: 'bootstrap4'
-            });
-        });
-        $(document).ready(function () {
-            $('#mailing-time').select2({
-                placeholder: 'Виберіть час…',
-                theme: 'bootstrap4'
-            });
-        });
-    </script>
+    <script src="{{ url_for('static', path='js/mailing-calendar.js') }}"></script>
+    <script src="{{ url_for('static', path='js/add-mailing-validation.js') }}"></script>
 {% endblock %}

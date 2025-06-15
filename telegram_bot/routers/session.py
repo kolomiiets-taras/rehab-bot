@@ -8,14 +8,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from db import Complex, ComplexExercise
 from db.session_wraper import with_session
-from db.models import (
-    DailySession, CourseItem, Complex, ComplexExercise, UserCourse, Course, DailySessionState, MotivationMessage
-)
+from db.models import DailySession, CourseItem, UserCourse, Course, DailySessionState, MotivationMessage
 from telegram_bot.keyboards.session_keyboards import wellbeing_keyboard, yes_no_keyboard
 from telegram_bot.middlewares.localization import i18n
 from telegram_bot.routers.utils import validate_pulse, finish_session, error_logger
-from telegram_bot.utils import send_exercise
+from telegram_bot.utils import send_exercise, clean_html_for_telegram
 
 router = Router(name=__name__)
 _ = i18n.gettext
@@ -35,26 +34,34 @@ class Session(StatesGroup):
 @with_session
 async def start_session_handler(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
     session_id = int(callback.data.split('_')[1])
-    result = await session.execute(select(DailySession).where(DailySession.id == session_id).options(
-        selectinload(DailySession.course_item)
-        .selectinload(CourseItem.complex)
-        .selectinload(Complex.exercises)
-        .selectinload(ComplexExercise.exercise),
-        selectinload(DailySession.course_item).selectinload(CourseItem.exercise),
-        selectinload(DailySession.user_course)
-        .selectinload(UserCourse.course)
-        .selectinload(Course.items)
-    ))
+    result = await session.execute(
+        select(DailySession)
+        .where(DailySession.id == session_id)
+        .options(
+            selectinload(DailySession.user_course)
+            .selectinload(UserCourse.course)
+            .selectinload(Course.items)
+            .selectinload(CourseItem.exercise),
+
+            selectinload(DailySession.user_course)
+            .selectinload(UserCourse.course)
+            .selectinload(Course.items)
+            .selectinload(CourseItem.complex)
+            .selectinload(Complex.exercises)
+            .selectinload(ComplexExercise.exercise)
+        )
+    )
     daily_session = result.scalar_one_or_none()
+
+    exercises = []
+    for item in daily_session.user_course.course.items:
+        if item.is_exercise:
+            exercises.append(item.exercise)
+        elif item.is_complex:
+            exercises.extend([ex.exercise for ex in item.complex.exercises])
 
     if daily_session:
         daily_session.state = DailySessionState.IN_PROGRESS
-        item = daily_session.course_item
-        exercises = []
-        if item.is_exercise:
-            exercises = [item.exercise]
-        elif item.is_complex:
-            exercises = [ex.exercise for ex in item.complex.exercises]
         await state.update_data(exercises=exercises)
         await state.update_data(daily_session=daily_session)
         await state.set_state(Session.pulse_before)
@@ -180,9 +187,9 @@ async def next_exercise_handler(callback: CallbackQuery, state: FSMContext, sess
 
     motivation_result = await session.execute(select(MotivationMessage))
     motivation_messages = motivation_result.scalars().all()
-    if motivation_messages:
+    if motivation_messages and last:
         motivation_message = random.choice(motivation_messages)
-        message = await callback.message.answer(motivation_message.message)
+        message = await callback.message.answer(clean_html_for_telegram(motivation_message.message))
         motivation = data.get("motivation", [])
         motivation.append(message)
         await state.update_data(motivation=motivation)

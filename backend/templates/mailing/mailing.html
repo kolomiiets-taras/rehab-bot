@@ -5,7 +5,7 @@
 <style>
     .badge-grid {
       display: grid;
-      grid-template-columns: repeat(10, auto);
+      grid-template-columns: repeat(6, auto);
       gap: 2px;
     }
 
@@ -59,7 +59,7 @@
                                         <th>Завершено</th>
                                         <th>Час розсилки</th>
                                         <th>Дні розсилки</th>
-                                        <th>Повтори</th>
+                                        <th>Кінцева дата</th>
                                         <th>Дія</th>
                                     </tr>
                                     </thead>
@@ -72,12 +72,14 @@
                                             <td>{{ mailing.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                                             <td>
                                                 {% set status_map = {
-                                                    '0': {'title': 'Не надіслано', 'class': 'badge-secondary', 'text': '•'},
-                                                    '1': {'title': 'Виконано', 'class': 'badge-success', 'text': '✓'},
-                                                    '2': {'title': 'Не виконано', 'class': 'badge-warning', 'text': '✗'},
+                                                    0: {'title': 'Не надіслано', 'class': 'badge-secondary', 'text': '•'},
+                                                    1: {'title': 'Не почато', 'class': 'badge-Info', 'text': '?'},
+                                                    2: {'title': 'В процесі', 'class': 'badge-primary', 'text': '>'},
+                                                    3: {'title': 'Виконано', 'class': 'badge-success', 'text': '✓'},
+                                                    4: {'title': 'Пропущено', 'class': 'badge-warning', 'text': '✗'},
                                                 } %}
                                                 <div class="badge-grid">
-                                                    {% for status in mailing.progress %}
+                                                    {% for status in mailing.sessions_statuses %}
                                                         {% set info = status_map[status] %}
                                                         {% set is_current = loop.index == mailing.current_position %}
                                                         <span title="{{ info.title }}" class="badge badge-square {{ info.class }} {{ 'border border-dark' if is_current else '' }}">
@@ -89,7 +91,7 @@
                                             <td>{{ 'Так' if mailing.finished else 'Ні' }}</td>
                                             <td>{{ mailing.mailing_time }}</td>
                                             <td>{{ mailing.days_str }}</td>
-                                            <td>{{ mailing.iterations }}</td>
+                                            <td>{{ mailing.end_date.strftime('%Y-%m-%d') }}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-info" data-toggle="modal"
                                                         data-target="#editMailingModal{{ mailing.id }}">
@@ -132,4 +134,7 @@
     <script src="{{ url_for('static', path='vendor/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ url_for('static', path='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/pagination.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ url_for('static', path='js/edit-mailing-calendar.js') }}"></script>
+
 {% endblock %}

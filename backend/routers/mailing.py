@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from sqlalchemy import select, not_, exists
-from datetime import time
+from datetime import time, date
 from .utils import access_for, error_handler
 from logger import get_site_logger
 from db.models import Role, UserCourse, User, Course, CourseItem
@@ -24,7 +24,8 @@ logger = get_site_logger()
 async def mailings_list(request: Request, db: AsyncSession = Depends(get_db)):
     stmt = select(UserCourse).options(
         selectinload(UserCourse.course),
-        selectinload(UserCourse.user)
+        selectinload(UserCourse.user),
+        selectinload(UserCourse.sessions)
     )
 
     mailings_result = await db.execute(stmt)
@@ -82,7 +83,7 @@ async def add_mailing(
         items_json: str = Form(None),
         mailing_time: time = Form(...),
         mailing_days: list[int] = Form(...),
-        iterations: int = Form(...),
+        end_date: date = Form(...),
         db: AsyncSession = Depends(get_db)
 ):
     if items := json.loads(items_json or "[]"):
@@ -91,11 +92,9 @@ async def add_mailing(
         await db.flush()  # присвоит course.id
 
         # добавляем упражнения
-        progress = ''
         for itm in items:
             kwarg = {f'{itm["type"]}_id': itm["id"]}
             db.add(CourseItem(**kwarg, course_id=course.id, position=int(itm['position'])))
-            progress += '0'
 
         await db.commit()
         course_id = course.id
@@ -104,8 +103,11 @@ async def add_mailing(
         course_result = await db.execute(
             select(Course).where(Course.id == course_id).options(selectinload(Course.items))
         )
-        course = course_result.scalar_one_or_none()
-        progress = '0' * course.items_count
+        if course := course_result.scalar_one_or_none():
+            course_id = course.id
+        else:
+            logger.error(f"Course with ID {course_id} not found")
+            return RedirectResponse(url="/mailing?error=1", status_code=303)
 
     for user_id in users:
         # 1. Найти активную рассылку для пользователя (если есть)
@@ -124,10 +126,9 @@ async def add_mailing(
         user_course = UserCourse(
             user_id=user_id,
             course_id=course_id,
-            progress=progress * iterations,
             mailing_time=mailing_time,
             mailing_days=sorted(mailing_days),
-            iterations=iterations
+            end_date=end_date
         )
         db.add(user_course)
     await db.commit()
@@ -233,6 +234,7 @@ async def edit_mailing(
         mailing_id: int,
         mailing_time: time = Form(...),
         mailing_days: list[int] = Form(...),
+        end_date: date = Form(...),
         db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(select(UserCourse).where(UserCourse.id == mailing_id))
@@ -241,6 +243,7 @@ async def edit_mailing(
     if user_course:
         user_course.mailing_time = mailing_time
         user_course.mailing_days = sorted(mailing_days)
+        user_course.end_date = end_date
         await db.commit()
         logger.info(f"Edited mailing ID {mailing_id}")
 
