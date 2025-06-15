@@ -60,7 +60,7 @@ async def users_list(request: Request, db: AsyncSession = Depends(get_db)):
 
 @router.get("/{user_id}")
 @access_for(Role.ADMIN, Role.DOCTOR, Role.MANAGER)
-# @error_handler('users')
+@error_handler('users')
 async def user_detail(request: Request, user_id: int, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if not user:
